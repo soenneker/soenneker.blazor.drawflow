@@ -1,0 +1,3 @@
+﻿window.initdrawflowinterop = (params) => {
+
+};
