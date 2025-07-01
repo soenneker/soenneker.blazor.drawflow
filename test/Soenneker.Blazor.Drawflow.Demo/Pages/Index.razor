@@ -4,29 +4,359 @@
 @using Soenneker.Blazor.Drawflow
 @inject ILogger<Index> Logger
 
-<h1>Soenneker.Blazor.Drawflow demo</h1>
-
-<Drawflow @ref="_flow" Options="_options" OnNodeCreated="HandleCreated" style="height:500px;border:1px solid gray"></Drawflow>
-
-<button class="btn btn-primary" @onclick="AddSample">Add Node</button>
-<button class="btn btn-secondary ms-2" @onclick="ZoomIn">Zoom In</button>
-<button class="btn btn-secondary ms-2" @onclick="AddModuleClick">Add Module</button>
+<div class="app-layout">
+    <div class="sidebar">
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <h3>Node Operations</h3>
+                <div class="button-group">
+                    <button class="btn" @onclick="AddGithubNode">GitHub Node</button>
+                    <button class="btn" @onclick="AddFacebookNode">Facebook Node</button>
+                    <button class="btn" @onclick="AddSlackNode">Slack Node</button>
+                    <button class="btn" @onclick="AddTelegramNode">Telegram Node</button>
+                    <button class="btn" @onclick="AddAWSNode">AWS Node</button>
+                    <button class="btn" @onclick="AddFileLogNode">File Log</button>
+                    <button class="btn" @onclick="AddGoogleDriveNode">Google Drive</button>
+                    <button class="btn" @onclick="AddEmailNode">Email Node</button>
+                </div>
+            </div>
+            <div class="toolbar-section">
+                <h3>View Controls</h3>
+                <div class="button-group">
+                    <button class="btn" @onclick="ZoomIn">Zoom In</button>
+                    <button class="btn" @onclick="ZoomOut">Zoom Out</button>
+                    <button class="btn" @onclick="ClearCanvas">Clear</button>
+                </div>
+            </div>
+            <div class="toolbar-section">
+                <h3>Module Management</h3>
+                <div class="button-group">
+                    <button class="btn" @onclick="AddModuleClick">Add Module</button>
+                    <button class="btn" @onclick="ChangeModuleClick">Change Module</button>
+                    <button class="btn" @onclick="RemoveModuleClick">Remove Module</button>
+                </div>
+            </div>
+            <div class="toolbar-section">
+                <h3>Data Operations</h3>
+                <div class="button-group">
+                    <button class="btn" @onclick="ExportData">Export</button>
+                    <button class="btn" @onclick="ImportData">Import</button>
+                    <button class="btn" @onclick="RemoveSelectedNode">Remove Selected</button>
+                </div>
+            </div>
+            <div class="toolbar-section">
+                <h3>Advanced</h3>
+                <div class="button-group">
+                    <button class="btn" @onclick="AddNodeInput">Add Input</button>
+                    <button class="btn" @onclick="AddNodeOutput">Add Output</button>
+                    <button class="btn" @onclick="UpdateSelectedNodeData">Update Data</button>
+                    <button class="btn" @onclick="CreateSampleFlow">Sample Flow</button>
+                    <button class="btn" @onclick="TestDrawflow">Test Drawflow</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="center-canvas">
+        <Drawflow @ref="_flow"
+                 Options="_options"
+                 OnNodeCreated="HandleNodeCreated"
+                 OnNodeRemoved="HandleNodeRemoved"
+                 OnConnectionCreated="HandleConnectionCreated"
+                 OnConnectionRemoved="HandleConnectionRemoved"
+                 OnNodeSelected="HandleNodeSelected"
+                 OnNodeUnselected="HandleNodeUnselected"
+                 OnDataChanged="HandleDataChanged"
+                 OnZoomChanged="HandleZoomChanged"
+                 OnModuleChanged="HandleModuleChanged"
+                 OnModuleAdded="HandleModuleAdded"
+                 OnModuleRemoved="HandleModuleRemoved"
+                 OnImport="HandleImport"
+                 OnExport="HandleExport"
+                 class="drawflow-editor">
+        </Drawflow>
+    </div>
+    <div class="statusbar">
+        <div class="info-panel">
+            <div class="info-section">
+                <h3>Status</h3>
+                <div class="status-info">
+                    <p><span>Nodes</span> <span class="badge">@_nodeCount</span></p>
+                    <p><span>Connections</span> <span class="badge">@_connectionCount</span></p>
+                    <p><span>Zoom</span> <span class="badge">@_currentZoom.ToString("F2")</span></p>
+                    <p><span>Module</span> <span class="badge">@_currentModule</span></p>
+                </div>
+            </div>
+            <div class="info-section">
+                <h3>Events</h3>
+                <div class="event-log">
+                    @foreach (var log in _eventLogs.Take(10))
+                    {
+                        <div class="log-entry">
+                            <span class="log-time">@log.Timestamp.ToString("HH:mm:ss")</span>
+                            <span class="log-message">@log.Message</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(_exportedData))
+            {
+                <div class="info-section">
+                    <h3>Exported Data</h3>
+                    <textarea class="export-data" readonly>@_exportedData</textarea>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     private Drawflow? _flow;
-    private readonly DrawflowOptions _options = new();
-
-    private Task HandleCreated(string id)
+    private readonly DrawflowOptions _options = new()
     {
+        Reroute = false,
+        RerouteFixCurvature = false,
+        Curvature = 0.3,
+        Zoom = 1.0,
+        ZoomMax = 2.0,
+        ZoomMin = 0.3,
+        ZoomValue = 0.1,
+        DraggableInputs = true,
+        UseUuid = true,
+        ManualCreate = true
+    };
+
+    private int _nodeCount = 0;
+    private int _connectionCount = 0;
+    private double _currentZoom = 1.0;
+    private string _currentModule = "Home";
+    private string _exportedData = "";
+    private string _selectedNodeId = "";
+    private readonly List<EventLog> _eventLogs = new();
+
+    private class EventLog
+    {
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "info";
+    }
+
+    private void AddLog(string message, string type = "info")
+    {
+        _eventLogs.Insert(0, new EventLog { Message = message, Type = type });
+        if (_eventLogs.Count > 50)
+            _eventLogs.RemoveAt(_eventLogs.Count - 1);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AddLog("Page loaded, initializing Drawflow component...", "info");
+            await Task.Delay(500); // Give time for component to initialize
+            
+            if (_flow != null)
+            {
+                try
+                {
+                    await _flow.Create(_options);
+                    AddLog("Drawflow component created successfully!", "success");
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"Error creating Drawflow: {ex.Message}", "error");
+                }
+            }
+            else
+            {
+                AddLog("Drawflow component is still null", "warning");
+            }
+        }
+    }
+
+    private Task HandleNodeCreated(string id)
+    {
+        _nodeCount++;
+        AddLog($"Node created: {id}", "success");
         Logger.LogInformation("Node created {Id}", id);
         return Task.CompletedTask;
     }
 
-    private async Task AddSample()
+    private Task HandleNodeRemoved(string id)
+    {
+        _nodeCount = Math.Max(0, _nodeCount - 1);
+        AddLog($"Node removed: {id}", "warning");
+        Logger.LogInformation("Node removed {Id}", id);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleConnectionCreated(string data)
+    {
+        _connectionCount++;
+        AddLog($"Connection created: {data}", "success");
+        Logger.LogInformation("Connection created {Data}", data);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleConnectionRemoved(string data)
+    {
+        _connectionCount = Math.Max(0, _connectionCount - 1);
+        AddLog($"Connection removed: {data}", "warning");
+        Logger.LogInformation("Connection removed {Data}", data);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleNodeSelected(string id)
+    {
+        _selectedNodeId = id;
+        AddLog($"Node selected: {id}", "info");
+        Logger.LogInformation("Node selected {Id}", id);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleNodeUnselected(string id)
+    {
+        _selectedNodeId = "";
+        AddLog($"Node unselected: {id}", "info");
+        Logger.LogInformation("Node unselected {Id}", id);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleDataChanged(string data)
+    {
+        // Reduce logging frequency for better performance during dragging
+        if (!data.Contains("position")) // Don't log position changes
+        {
+            AddLog($"Data changed: {data}", "info");
+        }
+        Logger.LogInformation("Data changed {Data}", data);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleZoomChanged(string zoom)
+    {
+        if (double.TryParse(zoom, out var zoomValue))
+        {
+            _currentZoom = zoomValue;
+            AddLog($"Zoom changed: {zoomValue:F2}", "info");
+        }
+        Logger.LogInformation("Zoom changed {Zoom}", zoom);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleModuleChanged(string module)
+    {
+        _currentModule = module;
+        AddLog($"Module changed: {module}", "info");
+        Logger.LogInformation("Module changed {Module}", module);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleModuleAdded(string module)
+    {
+        AddLog($"Module added: {module}", "success");
+        Logger.LogInformation("Module added {Module}", module);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleModuleRemoved(string module)
+    {
+        AddLog($"Module removed: {module}", "warning");
+        Logger.LogInformation("Module removed {Module}", module);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleImport(string data)
+    {
+        AddLog($"Data imported", "success");
+        Logger.LogInformation("Data imported");
+        return Task.CompletedTask;
+    }
+
+    private Task HandleExport(string data)
+    {
+        AddLog($"Data exported", "success");
+        Logger.LogInformation("Data exported");
+        return Task.CompletedTask;
+    }
+
+    private async Task AddGithubNode()
     {
         if (_flow != null)
         {
-            await _flow.AddNode("github", 0, 1, 150, 150, "github", new { }, "<div>node</div>");
+            await _flow.AddNode("github", 1, 1, 150, 150, "github", 
+                new { name = "GitHub", icon = "🐙" }, 
+                "<div class='node-content'><span class='node-title'>GitHub</span></div>");
+        }
+    }
+
+    private async Task AddFacebookNode()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("facebook", 1, 1, 300, 150, "facebook", 
+                new { name = "Facebook", icon = "📘" }, 
+                "<div class='node-content'><span class='node-title'>Facebook</span></div>");
+        }
+    }
+
+    private async Task AddSlackNode()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("slack", 1, 1, 450, 150, "slack", 
+                new { name = "Slack", icon = "💬" }, 
+                "<div class='node-content'><span class='node-title'>Slack</span></div>");
+        }
+    }
+
+    private async Task AddTelegramNode()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("telegram", 1, 1, 150, 300, "telegram", 
+                new { name = "Telegram", icon = "📱" }, 
+                "<div class='node-content'><span class='node-title'>Telegram</span></div>");
+        }
+    }
+
+    private async Task AddAWSNode()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("aws", 1, 1, 300, 300, "aws", 
+                new { name = "AWS", icon = "☁️" }, 
+                "<div class='node-content'><span class='node-title'>AWS</span></div>");
+        }
+    }
+
+    private async Task AddFileLogNode()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("filelog", 1, 1, 450, 300, "filelog", 
+                new { name = "File Log", icon = "📄" }, 
+                "<div class='node-content'><span class='node-title'>File Log</span></div>");
+        }
+    }
+
+    private async Task AddGoogleDriveNode()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("googledrive", 1, 1, 150, 450, "googledrive", 
+                new { name = "Google Drive", icon = "📁" }, 
+                "<div class='node-content'><span class='node-title'>Google Drive</span></div>");
+        }
+    }
+
+    private async Task AddEmailNode()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("email", 1, 1, 300, 450, "email", 
+                new { name = "Email", icon = "📧" }, 
+                "<div class='node-content'><span class='node-title'>Email</span></div>");
         }
     }
 
@@ -36,9 +366,170 @@
             await _flow.ZoomIn();
     }
 
+    private async Task ZoomOut()
+    {
+        if (_flow != null)
+            await _flow.ZoomOut();
+    }
+
+    private async Task ClearCanvas()
+    {
+        if (_flow != null)
+        {
+            await _flow.Clear();
+            _nodeCount = 0;
+            _connectionCount = 0;
+            AddLog("Canvas cleared", "warning");
+        }
+    }
+
     private async Task AddModuleClick()
     {
         if (_flow != null)
             await _flow.AddModule("Other");
+    }
+
+    private async Task ChangeModuleClick()
+    {
+        if (_flow != null)
+            await _flow.ChangeModule("Other");
+    }
+
+    private async Task RemoveModuleClick()
+    {
+        if (_flow != null)
+            await _flow.RemoveModule("Other");
+    }
+
+    private async Task ExportData()
+    {
+        if (_flow != null)
+        {
+            _exportedData = await _flow.Export();
+            AddLog("Data exported successfully", "success");
+        }
+    }
+
+    private async Task ImportData()
+    {
+        if (_flow != null && !string.IsNullOrEmpty(_exportedData))
+        {
+            await _flow.Import(_exportedData);
+            AddLog("Data imported successfully", "success");
+        }
+    }
+
+    private async Task RemoveSelectedNode()
+    {
+        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        {
+            await _flow.RemoveNode(_selectedNodeId);
+            _selectedNodeId = "";
+        }
+    }
+
+    private async Task AddNodeInput()
+    {
+        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        {
+            await _flow.AddNodeInput(_selectedNodeId);
+            AddLog($"Added input to node: {_selectedNodeId}", "success");
+        }
+        else
+        {
+            AddLog("Please select a node first", "warning");
+        }
+    }
+
+    private async Task AddNodeOutput()
+    {
+        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        {
+            await _flow.AddNodeOutput(_selectedNodeId);
+            AddLog($"Added output to node: {_selectedNodeId}", "success");
+        }
+        else
+        {
+            AddLog("Please select a node first", "warning");
+        }
+    }
+
+    private async Task UpdateSelectedNodeData()
+    {
+        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        {
+            var newData = new { 
+                name = "Updated Node", 
+                icon = "🔄", 
+                timestamp = DateTime.Now.ToString("HH:mm:ss"),
+                updated = true 
+            };
+            await _flow.UpdateNodeData(_selectedNodeId, newData);
+            AddLog($"Updated node data: {_selectedNodeId}", "success");
+        }
+        else
+        {
+            AddLog("Please select a node first", "warning");
+        }
+    }
+
+    private async Task CreateSampleFlow()
+    {
+        if (_flow != null)
+        {
+            AddLog("Creating sample workflow...", "info");
+            
+            await _flow.Clear();
+            _nodeCount = 0;
+            _connectionCount = 0;
+
+            // Create a sample workflow
+            await _flow.AddNode("github", 0, 1, 100, 100, "github", 
+                new { name = "GitHub", icon = "🐙" }, 
+                "<div class='node-content'><span class='node-title'>GitHub</span></div>");
+
+            await _flow.AddNode("slack", 1, 1, 300, 100, "slack", 
+                new { name = "Slack", icon = "💬" }, 
+                "<div class='node-content'><span class='node-title'>Slack</span></div>");
+
+            await _flow.AddNode("email", 1, 0, 500, 100, "email", 
+                new { name = "Email", icon = "📧" }, 
+                "<div class='node-content'><span class='node-title'>Email</span></div>");
+
+            // Add connections
+            await _flow.AddConnection("github", "slack", "output", "input");
+            await _flow.AddConnection("slack", "email", "output", "input");
+
+            AddLog("Created sample workflow", "success");
+        }
+        else
+        {
+            AddLog("Drawflow component is null - not initialized", "error");
+        }
+    }
+
+    private async Task TestDrawflow()
+    {
+        AddLog("Testing Drawflow component...", "info");
+        
+        if (_flow == null)
+        {
+            AddLog("Drawflow component is null", "error");
+            return;
+        }
+
+        try
+        {
+            // Try to create a simple node
+            await _flow.AddNode("test", 1, 1, 200, 200, "test", 
+                new { name = "Test Node" }, 
+                "<div class='node-content'><span class='node-title'>Test Node</span></div>");
+            
+            AddLog("Test node created successfully!", "success");
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Error creating test node: {ex.Message}", "error");
+        }
     }
 }

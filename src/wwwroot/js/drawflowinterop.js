@@ -10,6 +10,12 @@ export class DrawflowInterop {
         if (options) {
             Object.assign(editor, options);
         }
+        
+        // Performance optimizations
+        editor.force_first_input = false;
+        editor.line_path = 3; // Reduce line path complexity
+        editor.reroute = false; // Disable rerouting for better performance
+        
         editor.start();
         this.instances[elementId] = editor;
     }

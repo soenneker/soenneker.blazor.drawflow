@@ -1,5 +1,6 @@
 @using System.Threading
 @using Microsoft.Extensions.Logging
+@using Microsoft.JSInterop
 @using Soenneker.Blazor.Drawflow.Abstract
 @using Soenneker.Blazor.Drawflow.Options
 @using Soenneker.Blazor.Utils.InteropEventListener.Abstract
@@ -233,6 +234,54 @@
         return EnqueueOrExecute(async () =>
         {
             await DrawflowInterop.RemoveConnectionNodeId(_elementId, nodeId, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask<IJSObjectReference?> GetNodeFromId(string id, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute<IJSObjectReference?>(async () =>
+        {
+            return await DrawflowInterop.GetNodeFromId(_elementId, id, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask<int[]> GetNodesFromName(string name, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute<int[]>(async () =>
+        {
+            return await DrawflowInterop.GetNodesFromName(_elementId, name, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask UpdateNodeData(string id, object data, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.UpdateNodeData(_elementId, id, data, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask UpdateConnectionNodes(string id, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.UpdateConnectionNodes(_elementId, id, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask<string?> GetModuleFromNodeId(string id, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute<string?>(async () =>
+        {
+            return await DrawflowInterop.GetModuleFromNodeId(_elementId, id, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask ClearModuleSelected(CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.ClearModuleSelected(_elementId, cancellationToken).NoSync();
         });
     }
 
