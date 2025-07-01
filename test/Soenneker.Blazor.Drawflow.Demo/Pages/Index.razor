@@ -1,18 +1,43 @@
-﻿@page "/"
-@using Microsoft.Extensions.Logging
-
+@page "/"
+@using Soenneker.Blazor.Drawflow.Options
+@using Soenneker.Blazor.Drawflow
 @inject ILogger<Index> Logger
 
-<img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
 <h1>Soenneker.Blazor.Drawflow demo</h1>
-<p>This page demonstrates some of the common usages for the interop library.</p>
-<br />
 
-<hr />
+<Drawflow @ref="_flow" Options="_options" OnNodeCreated="HandleCreated" style="height:500px;border:1px solid gray"></Drawflow>
 
-@code{
+<button class="btn btn-primary" @onclick="AddSample">Add Node</button>
+<button class="btn btn-secondary ms-2" @onclick="ZoomIn">Zoom In</button>
+<button class="btn btn-secondary ms-2" @onclick="AddModuleClick">Add Module</button>
 
-    protected override void OnInitialized()
+@code {
+    private Drawflow? _flow;
+    private readonly DrawflowOptions _options = new();
+
+    private Task HandleCreated(string id)
     {
+        Logger.LogInformation("Node created {Id}", id);
+        return Task.CompletedTask;
+    }
+
+    private async Task AddSample()
+    {
+        if (_flow != null)
+        {
+            await _flow.AddNode("github", 0, 1, 150, 150, "github", new { }, "<div>node</div>");
+        }
+    }
+
+    private async Task ZoomIn()
+    {
+        if (_flow != null)
+            await _flow.ZoomIn();
+    }
+
+    private async Task AddModuleClick()
+    {
+        if (_flow != null)
+            await _flow.AddModule("Other");
     }
 }

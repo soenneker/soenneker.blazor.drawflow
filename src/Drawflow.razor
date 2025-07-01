@@ -1,0 +1,84 @@
+@using Microsoft.Extensions.Logging
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components
+@using Soenneker.Blazor.Drawflow.Options
+@using Soenneker.Blazor.Drawflow.Abstract
+@implements IAsyncDisposable
+@inject IDrawflowInterop Interop
+@inject ILogger<Drawflow> Logger
+
+<div blazor-interop-id="@_elementId" style="width:100%;height:100%;"></div>
+
+@code {
+    private readonly string _elementId = "df_" + Guid.NewGuid().ToString("N");
+
+    [Parameter]
+    public DrawflowOptions? Options { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnNodeCreated { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Interop.Create(_elementId, Options);
+            await RegisterEvents();
+        }
+    }
+
+    private async Task RegisterEvents()
+    {
+        if (OnNodeCreated.HasDelegate)
+        {
+            await Interop.AddEventListener(_elementId, "nodeCreated", EventCallback.Factory.Create<string>(this, OnNodeCreated));
+        }
+    }
+
+    public ValueTask AddNode(string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html)
+    {
+        return Interop.AddNode(_elementId, name, inputs, outputs, posX, posY, className, data, html);
+    }
+
+    public ValueTask AddConnection(string outputNode, string inputNode, string outputClass, string inputClass)
+    {
+        return Interop.AddConnection(_elementId, outputNode, inputNode, outputClass, inputClass);
+    }
+
+    public ValueTask RemoveNode(string nodeId) => Interop.RemoveNode(_elementId, nodeId);
+
+    public ValueTask RemoveConnectionNodeId(string nodeId) => Interop.RemoveConnectionNodeId(_elementId, nodeId);
+
+    public ValueTask<string> Export() => Interop.Export(_elementId);
+
+    public ValueTask Import(string json) => Interop.Import(_elementId, json);
+
+    public ValueTask ZoomIn() => Interop.ZoomIn(_elementId);
+    public ValueTask ZoomOut() => Interop.ZoomOut(_elementId);
+
+    public ValueTask AddModule(string name) => Interop.AddModule(_elementId, name);
+    public ValueTask ChangeModule(string name) => Interop.ChangeModule(_elementId, name);
+    public ValueTask RemoveModule(string name) => Interop.RemoveModule(_elementId, name);
+
+    public ValueTask AddNodeInput(string id) => Interop.AddNodeInput(_elementId, id);
+    public ValueTask AddNodeOutput(string id) => Interop.AddNodeOutput(_elementId, id);
+    public ValueTask RemoveNodeInput(string id, string inputClass) => Interop.RemoveNodeInput(_elementId, id, inputClass);
+    public ValueTask RemoveNodeOutput(string id, string outputClass) => Interop.RemoveNodeOutput(_elementId, id, outputClass);
+
+    public ValueTask RemoveSingleConnection(string outId, string inId, string outClass, string inClass) =>
+        Interop.RemoveSingleConnection(_elementId, outId, inId, outClass, inClass);
+
+    public ValueTask Clear() => Interop.Clear(_elementId);
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await Interop.Destroy(_elementId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error disposing Drawflow");
+        }
+    }
+}
