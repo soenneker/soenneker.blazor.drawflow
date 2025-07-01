@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
@@ -9,9 +10,11 @@ namespace Soenneker.Blazor.Drawflow.Abstract;
 /// <summary>
 /// A Blazor interop library for drawflow.js
 /// </summary>
-public interface IDrawflowInterop
+public interface  IDrawflowInterop : IAsyncDisposable
 {
+    ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default);
     ValueTask Create(string elementId, DrawflowOptions? options = null, CancellationToken cancellationToken = default);
+    ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default);
     ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default);
     ValueTask RemoveNode(string elementId, string nodeId, CancellationToken cancellationToken = default);
     ValueTask AddConnection(string elementId, string outputNode, string inputNode, string outputClass, string inputClass, CancellationToken cancellationToken = default);

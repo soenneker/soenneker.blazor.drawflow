@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Soenneker.Blazor.Drawflow.Abstract;
+using Soenneker.Blazor.Utils.InteropEventListener.Registrars;
+using Soenneker.Blazor.Utils.ResourceLoader.Registrars;
 
 namespace Soenneker.Blazor.Drawflow.Registrars;
 
@@ -14,7 +16,9 @@ public static class DrawflowInteropRegistrar
     /// </summary>
     public static IServiceCollection AddDrawflowInteropAsScoped(this IServiceCollection services)
     {
-        services.TryAddScoped<IDrawflowInterop, DrawflowInterop>();
+        services.AddResourceLoaderAsScoped()
+                .AddInteropEventListenerAsScoped()
+                .TryAddScoped<IDrawflowInterop, DrawflowInterop>();
 
         return services;
     }

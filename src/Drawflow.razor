@@ -1,16 +1,29 @@
+@using System.Threading
 @using Microsoft.Extensions.Logging
-@using Microsoft.JSInterop
-@using Microsoft.AspNetCore.Components
-@using Soenneker.Blazor.Drawflow.Options
 @using Soenneker.Blazor.Drawflow.Abstract
-@implements IAsyncDisposable
-@inject IDrawflowInterop Interop
-@inject ILogger<Drawflow> Logger
+@using Soenneker.Blazor.Drawflow.Options
+@using Soenneker.Blazor.Utils.InteropEventListener.Abstract
+@using Soenneker.Extensions.Task
+@using Soenneker.Extensions.ValueTask
 
-<div blazor-interop-id="@_elementId" style="width:100%;height:100%;"></div>
+@inject IDrawflowInterop DrawflowInterop
+@inject IInteropEventListener InteropEventListener
+@inject ILogger<Drawflow> _logger
+
+@implements IAsyncDisposable
+
+<div blazor-observer-id="@_elementId" ></div>
+<div blazor-wrapper-id="@_elementId" >
+    <div blazor-interop-id="@_elementId" @attributes="Attributes"></div>
+</div>
 
 @code {
-    private readonly string _elementId = "df_" + Guid.NewGuid().ToString("N");
+    private readonly string _elementId;
+
+    private readonly CancellationTokenSource _cTs;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? Attributes { get; set; }
 
     [Parameter]
     public DrawflowOptions? Options { get; set; }
@@ -18,67 +31,354 @@
     [Parameter]
     public EventCallback<string> OnNodeCreated { get; set; }
 
+    [Parameter]
+    public EventCallback<string> OnNodeRemoved { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnConnectionCreated { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnConnectionRemoved { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnModuleChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnModuleAdded { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnModuleRemoved { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnNodeSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnNodeUnselected { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnConnectionSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnConnectionUnselected { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnDataChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnZoomChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnReroute { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnTranslated { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnImport { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnExport { get; set; }
+
+    private bool _initializing;
+    private bool _initialized;
+
+    private readonly List<Func<ValueTask>> _afterInitializationOperations;
+
+    public Drawflow()
+    {
+        _initializing = false;
+        _initialized = false;
+        _elementId = "df_" + Guid.NewGuid().ToString("N");
+        _cTs = new CancellationTokenSource();
+        _afterInitializationOperations = [];
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DrawflowInterop.Initialize(Options?.UseCdn ?? true, _cTs.Token).NoSync();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await Interop.Create(_elementId, Options);
-            await RegisterEvents();
+            if (Options is {ManualCreate: true})
+            {
+                return;
+            }
+
+            await Create(cancellationToken: _cTs.Token).NoSync();
+            await DrawflowInterop.CreateObserver(_elementId, _cTs.Token).NoSync();
         }
     }
 
-    private async Task RegisterEvents()
+    public async ValueTask Create(DrawflowOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        if (_initialized || _initializing)
+        {
+            _logger.LogError("Drawflow 'Create' cannot be called multiple times without destroying the instance first");
+            return;
+        }
+
+        _initializing = true;
+
+        if (options != null)
+            Options = options;
+
+        //InteropEventListener.Initialize(DrawflowInterop);
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.Create(_elementId, Options, linkedCts.Token).NoSync();
+
+        await AddEventListeners(linkedCts.Token).NoSync();
+
+        _initialized = true;
+        _initializing = false;
+
+        foreach (Func<ValueTask> valueTaskFunc in _afterInitializationOperations)
+        {
+            await valueTaskFunc();
+        }
+
+        _afterInitializationOperations.Clear();
+    }
+
+    public ValueTask SetOptions(DrawflowOptions options, CancellationToken cancellationToken = default)
+    {
+        // Note: Drawflow doesn't have a setOptions method like FilePond, but we can update the Options property
+        Options = options;
+        return ValueTask.CompletedTask;
+    }
+
+    private async ValueTask AddEventListeners(CancellationToken cancellationToken)
     {
         if (OnNodeCreated.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "nodeCreated", OnNodeCreated, cancellationToken).NoSync();
+
+        if (OnNodeRemoved.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "nodeRemoved", OnNodeRemoved, cancellationToken).NoSync();
+
+        if (OnConnectionCreated.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "connectionCreated", OnConnectionCreated, cancellationToken).NoSync();
+
+        if (OnConnectionRemoved.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "connectionRemoved", OnConnectionRemoved, cancellationToken).NoSync();
+
+        if (OnModuleChanged.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "moduleChanged", OnModuleChanged, cancellationToken).NoSync();
+
+        if (OnModuleAdded.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "moduleAdded", OnModuleAdded, cancellationToken).NoSync();
+
+        if (OnModuleRemoved.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "moduleRemoved", OnModuleRemoved, cancellationToken).NoSync();
+
+        if (OnNodeSelected.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "nodeSelected", OnNodeSelected, cancellationToken).NoSync();
+
+        if (OnNodeUnselected.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "nodeUnselected", OnNodeUnselected, cancellationToken).NoSync();
+
+        if (OnConnectionSelected.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "connectionSelected", OnConnectionSelected, cancellationToken).NoSync();
+
+        if (OnConnectionUnselected.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "connectionUnselected", OnConnectionUnselected, cancellationToken).NoSync();
+
+        if (OnDataChanged.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "dataChanged", OnDataChanged, cancellationToken).NoSync();
+
+        if (OnZoomChanged.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "zoomChanged", OnZoomChanged, cancellationToken).NoSync();
+
+        if (OnReroute.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "reroute", OnReroute, cancellationToken).NoSync();
+
+        if (OnTranslated.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "translated", OnTranslated, cancellationToken).NoSync();
+
+        if (OnImport.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "import", OnImport, cancellationToken).NoSync();
+
+        if (OnExport.HasDelegate)
+            await DrawflowInterop.AddEventListener(_elementId, "export", OnExport, cancellationToken).NoSync();
+    }
+
+    public ValueTask AddNode(string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
         {
-            await Interop.AddEventListener(_elementId, "nodeCreated", EventCallback.Factory.Create<string>(this, OnNodeCreated));
+            await DrawflowInterop.AddNode(_elementId, name, inputs, outputs, posX, posY, className, data, html, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask AddConnection(string outputNode, string inputNode, string outputClass, string inputClass, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.AddConnection(_elementId, outputNode, inputNode, outputClass, inputClass, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask RemoveNode(string nodeId, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.RemoveNode(_elementId, nodeId, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask RemoveConnectionNodeId(string nodeId, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.RemoveConnectionNodeId(_elementId, nodeId, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask<string> Export(CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute<string>(async () =>
+        {
+            return await DrawflowInterop.Export(_elementId, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask Import(string json, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.Import(_elementId, json, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask ZoomIn(CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.ZoomIn(_elementId, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask ZoomOut(CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.ZoomOut(_elementId, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask AddModule(string name, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.AddModule(_elementId, name, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask ChangeModule(string name, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.ChangeModule(_elementId, name, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask RemoveModule(string name, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.RemoveModule(_elementId, name, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask AddNodeInput(string id, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.AddNodeInput(_elementId, id, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask AddNodeOutput(string id, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.AddNodeOutput(_elementId, id, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask RemoveNodeInput(string id, string inputClass, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.RemoveNodeInput(_elementId, id, inputClass, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask RemoveNodeOutput(string id, string outputClass, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.RemoveNodeOutput(_elementId, id, outputClass, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask RemoveSingleConnection(string outId, string inId, string outClass, string inClass, CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.RemoveSingleConnection(_elementId, outId, inId, outClass, inClass, cancellationToken).NoSync();
+        });
+    }
+
+    public ValueTask Clear(CancellationToken cancellationToken = default)
+    {
+        return EnqueueOrExecute(async () =>
+        {
+            await DrawflowInterop.Clear(_elementId, cancellationToken).NoSync();
+        });
+    }
+
+    private ValueTask EnqueueOrExecute(Func<ValueTask> operation)
+    {
+        if (!_initialized)
+        {
+            _afterInitializationOperations.Add(operation);
+            return ValueTask.CompletedTask;
         }
+
+        return operation();
     }
 
-    public ValueTask AddNode(string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html)
+    private ValueTask<T> EnqueueOrExecute<T>(Func<ValueTask<T>> operation)
     {
-        return Interop.AddNode(_elementId, name, inputs, outputs, posX, posY, className, data, html);
+        if (!_initialized)
+        {
+            _afterInitializationOperations.Add(async () => await operation());
+            return ValueTask.FromResult<T>(default!);
+        }
+
+        return operation();
     }
-
-    public ValueTask AddConnection(string outputNode, string inputNode, string outputClass, string inputClass)
-    {
-        return Interop.AddConnection(_elementId, outputNode, inputNode, outputClass, inputClass);
-    }
-
-    public ValueTask RemoveNode(string nodeId) => Interop.RemoveNode(_elementId, nodeId);
-
-    public ValueTask RemoveConnectionNodeId(string nodeId) => Interop.RemoveConnectionNodeId(_elementId, nodeId);
-
-    public ValueTask<string> Export() => Interop.Export(_elementId);
-
-    public ValueTask Import(string json) => Interop.Import(_elementId, json);
-
-    public ValueTask ZoomIn() => Interop.ZoomIn(_elementId);
-    public ValueTask ZoomOut() => Interop.ZoomOut(_elementId);
-
-    public ValueTask AddModule(string name) => Interop.AddModule(_elementId, name);
-    public ValueTask ChangeModule(string name) => Interop.ChangeModule(_elementId, name);
-    public ValueTask RemoveModule(string name) => Interop.RemoveModule(_elementId, name);
-
-    public ValueTask AddNodeInput(string id) => Interop.AddNodeInput(_elementId, id);
-    public ValueTask AddNodeOutput(string id) => Interop.AddNodeOutput(_elementId, id);
-    public ValueTask RemoveNodeInput(string id, string inputClass) => Interop.RemoveNodeInput(_elementId, id, inputClass);
-    public ValueTask RemoveNodeOutput(string id, string outputClass) => Interop.RemoveNodeOutput(_elementId, id, outputClass);
-
-    public ValueTask RemoveSingleConnection(string outId, string inId, string outClass, string inClass) =>
-        Interop.RemoveSingleConnection(_elementId, outId, inId, outClass, inClass);
-
-    public ValueTask Clear() => Interop.Clear(_elementId);
 
     public async ValueTask DisposeAsync()
     {
         try
         {
-            await Interop.Destroy(_elementId);
+            await _cTs.CancelAsync().NoSync();
+            if (_initialized)
+            {
+                await DrawflowInterop.Destroy(_elementId, _cTs.Token).NoSync();
+            }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error disposing Drawflow");
+            _logger.LogError(ex, "Error disposing Drawflow");
+        }
+        finally
+        {
+            _cTs.Dispose();
         }
     }
 }

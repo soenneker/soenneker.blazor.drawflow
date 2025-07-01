@@ -48,6 +48,28 @@ export class DrawflowInterop {
         }
     }
 
+    createObserver(elementId) {
+        // This method is used by the EventListeningInterop base class
+        // to observe DOM changes for the element
+        const selector = `[blazor-observer-id="${elementId}"]`;
+        const element = document.querySelector(selector);
+        if (element) {
+            // Create a MutationObserver to watch for changes
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        // Handle DOM changes if needed
+                    }
+                });
+            });
+            
+            observer.observe(element, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }
+
     addEventListener(elementId, eventName, dotNetCallback) {
         const editor = this.instances[elementId];
         editor.on(eventName, (...args) => {

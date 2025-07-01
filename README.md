@@ -11,11 +11,7 @@ A lightweight Blazor wrapper for [drawflow.js](https://github.com/jerosoler/Draw
 ```
 
 ## Usage
-Include the Drawflow library on the page and drop the component:
-```html
-<link href="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.js"></script>
-```
+
 ```razor
 <Drawflow @ref="Flow" Options="_options" OnNodeCreated="Handle" style="height:400px"></Drawflow>
 
@@ -37,9 +33,6 @@ See the demo project for a working example.
 
 The component exposes many of the functions provided by drawflow.js. Some useful helpers include:
 
-```razor
-@ref Flow
-```
 
 ```csharp
 await Flow.ZoomIn();

@@ -26,6 +26,13 @@ public class DrawflowOptions
     public bool DraggableInputs { get; set; } = true;
     public bool UseUuid { get; set; } = false;
 
-    /// <summary>Whether CDN links should be used when injecting scripts.</summary>
+    /// <summary>
+    /// Whether to use CDN for loading Drawflow resources. Defaults to true.
+    /// </summary>
     public bool UseCdn { get; set; } = true;
+
+    /// <summary>
+    /// Whether to manually create the Drawflow instance. If true, you must call Create() manually.
+    /// </summary>
+    public bool ManualCreate { get; set; } = false;
 }
