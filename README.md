@@ -8,6 +8,7 @@
 
 [Demo](https://soenneker.github.io/soenneker.blazor.drawflow)
 
+![image](https://github.com/user-attachments/assets/cda7f3b8-c440-4dcd-b035-54b2b03f0bef)
 
 ## Features
 
