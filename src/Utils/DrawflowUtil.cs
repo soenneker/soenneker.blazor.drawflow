@@ -1,6 +1,6 @@
 namespace Soenneker.Blazor.Drawflow.Utils;
 
-internal class DrawflowUtil
+internal static class DrawflowUtil
 {
     public static (string? uri, string? integrity) GetUriAndIntegrityForStyle(bool useCdn = true,
         string localBasePath = "_content/Soenneker.Blazor.Drawflow/css/")

@@ -4,7 +4,7 @@ namespace Soenneker.Blazor.Drawflow.Options;
 /// Options for initializing a Drawflow instance.
 /// These mirror common properties found in the JavaScript library.
 /// </summary>
-public class DrawflowOptions
+public sealed class DrawflowOptions
 {
     /// <summary>Enables connection rerouting.</summary>
     public bool Reroute { get; set; } = false;
