@@ -4,18 +4,24 @@ export class DrawflowInterop {
     }
 
     create(elementId, options) {
-        const selector = `[blazor-interop-id="${elementId}"]`;
+        // Use direct id selector for interop
+        const selector = `#${elementId}`;
         const container = document.querySelector(selector);
+
         const editor = new Drawflow(container);
+
         if (options) {
+            // If options is a string (from Blazor), parse it
+            if (typeof options === 'string') {
+                try {
+                    options = JSON.parse(options);
+                } catch (e) {
+                    console.error('Failed to parse Drawflow options:', e);
+                }
+            }
             Object.assign(editor, options);
         }
-        
-        // Performance optimizations
-        editor.force_first_input = false;
-        editor.line_path = 3; // Reduce line path complexity
-        editor.reroute = false; // Disable rerouting for better performance
-        
+
         editor.start();
         this.instances[elementId] = editor;
     }
@@ -27,7 +33,7 @@ export class DrawflowInterop {
 
     removeNode(elementId, id) {
         const editor = this.instances[elementId];
-        editor.removeNodeId(id);
+        editor.removeNodeId('node-' + id); // Always a string
     }
 
     addConnection(elementId, outId, inId, outClass, inClass) {
@@ -57,7 +63,8 @@ export class DrawflowInterop {
     createObserver(elementId) {
         // This method is used by the EventListeningInterop base class
         // to observe DOM changes for the element
-        const selector = `[blazor-observer-id="${elementId}"]`;
+        // Use direct id selector for observer
+        const selector = `#${elementId}`;
         const element = document.querySelector(selector);
         if (element) {
             // Create a MutationObserver to watch for changes
@@ -126,22 +133,22 @@ export class DrawflowInterop {
 
     addNodeInput(elementId, id) {
         const editor = this.instances[elementId];
-        editor.addNodeInput(id);
+        editor.addNodeInput(id); // Always a string
     }
 
     addNodeOutput(elementId, id) {
         const editor = this.instances[elementId];
-        editor.addNodeOutput(id);
+        editor.addNodeOutput(id); // Always a string
     }
 
     removeNodeInput(elementId, id, inputClass) {
         const editor = this.instances[elementId];
-        editor.removeNodeInput(id, inputClass);
+        editor.removeNodeInput(id, inputClass); // Always a string
     }
 
     removeNodeOutput(elementId, id, outputClass) {
         const editor = this.instances[elementId];
-        editor.removeNodeOutput(id, outputClass);
+        editor.removeNodeOutput(id, outputClass); // Always a string
     }
 
     removeSingleConnection(elementId, outId, inId, outClass, inClass) {
@@ -151,12 +158,12 @@ export class DrawflowInterop {
 
     updateConnectionNodes(elementId, id) {
         const editor = this.instances[elementId];
-        editor.updateConnectionNodes(id);
+        editor.updateConnectionNodes('node-' + id); // Always a string
     }
 
     removeConnectionNodeId(elementId, id) {
         const editor = this.instances[elementId];
-        editor.removeConnectionNodeId(id);
+        editor.removeConnectionNodeId('node-' + id); // Always a string
     }
 
     getModuleFromNodeId(elementId, id) {
@@ -172,6 +179,12 @@ export class DrawflowInterop {
     clear(elementId) {
         const editor = this.instances[elementId];
         editor.clear();
+    }
+
+    // Batch operation example (optional)
+    removeNodes(elementId, ids) {
+        const editor = this.instances[elementId];
+        ids.forEach(id => editor.removeNodeId('node-' + id));
     }
 }
 

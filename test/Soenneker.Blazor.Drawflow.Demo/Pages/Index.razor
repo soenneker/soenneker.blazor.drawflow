@@ -2,112 +2,140 @@
 @using Microsoft.Extensions.Logging
 @using Soenneker.Blazor.Drawflow.Options
 @using Soenneker.Blazor.Drawflow
+@using System.Text.Json
 @inject ILogger<Index> Logger
 
-<div class="app-layout">
-    <div class="sidebar">
-        <div class="toolbar">
-            <div class="toolbar-section">
-                <h3>Node Operations</h3>
-                <div class="button-group">
-                    <button class="btn" @onclick="AddGithubNode">GitHub Node</button>
-                    <button class="btn" @onclick="AddFacebookNode">Facebook Node</button>
-                    <button class="btn" @onclick="AddSlackNode">Slack Node</button>
-                    <button class="btn" @onclick="AddTelegramNode">Telegram Node</button>
-                    <button class="btn" @onclick="AddAWSNode">AWS Node</button>
-                    <button class="btn" @onclick="AddFileLogNode">File Log</button>
-                    <button class="btn" @onclick="AddGoogleDriveNode">Google Drive</button>
-                    <button class="btn" @onclick="AddEmailNode">Email Node</button>
+<Layout>
+    <Bar Background="Background.Dark" ThemeContrast="ThemeContrast.Dark" Class="shadow-sm px-4" Style="height:64px;">
+        <BarBrand>
+            <span class="fw-bold fs-4">Drawflow Blazor Demo</span>
+        </BarBrand>
+        <BarEnd>
+            <Link To="https://github.com/Soenneker/soenneker.blazor.drawflow" Target="Target.Blank" Title="View on GitHub">
+                <i class="fa-brands fa-github fa-2xl"></i>
+            </Link>
+        </BarEnd>
+    </Bar>
+    <LayoutContent>
+        <div class="d-flex flex-row" style="height:calc(100vh - 64px);">
+            <LayoutSider Class="bg-dark text-light p-4 d-flex flex-column gap-4" Style="min-width:200px;max-width:320px;">
+                <div class="toolbar">
+                    <div class="toolbar-section mb-4">
+                        <h3 class="text-info">Node Operations</h3>
+                        <div class="d-flex flex-column gap-2">
+                            <Button Color="Color.Info" Outline Class="mb-1" @onclick="AddGithubNode">GitHub Node</Button>
+                            <Button Color="Color.Info" Outline Class="mb-1" @onclick="AddEmailNode">Email Node</Button>
+                            <Button Color="Color.Primary" Outline Class="mb-1" @onclick="AddHtmlNode">Add HTML Node</Button>
+                            <Button Color="Color.Primary" Outline Class="mb-1" @onclick="AddNodeWithData">Add Node With Data</Button>
+                            <Button Color="Color.Primary" Outline Class="mb-1" @onclick="AddCustomStyledNode">Add Custom Styled Node</Button>
+                        </div>
+                    </div>
+                    <div class="toolbar-section mb-4">
+                        <h3 class="text-info">View Controls</h3>
+                        <div class="d-flex flex-row gap-2 flex-wrap">
+                            <Button Color="Color.Secondary" @onclick="ZoomIn">Zoom In</Button>
+                            <Button Color="Color.Secondary" @onclick="ZoomOut">Zoom Out</Button>
+                            <Button Color="Color.Danger" @onclick="ClearCanvas">Clear</Button>
+                        </div>
+                    </div>
+                    <div class="toolbar-section mb-4">
+                        <h3 class="text-info">Module Management</h3>
+                        <div class="d-flex flex-row gap-2 flex-wrap">
+                            <Button Color="Color.Warning" @onclick="AddModuleClick">Add Module</Button>
+                            <Button Color="Color.Warning" @onclick="ChangeModuleClick">Change Module</Button>
+                            <Button Color="Color.Warning" @onclick="RemoveModuleClick">Remove Module</Button>
+                        </div>
+                    </div>
+                    <div class="toolbar-section mb-4">
+                        <h3 class="text-info">Data Operations</h3>
+                        <div class="d-flex flex-row gap-2 flex-wrap">
+                            <Button Color="Color.Success" @onclick="ExportData">Export</Button>
+                            <Button Color="Color.Success" @onclick="ImportData">Import</Button>
+                            <Button Color="Color.Danger" @onclick="RemoveSelectedNode">Remove Selected</Button>
+                            <Button Color="Color.Info" @onclick="ShowCurrentDrawflow">Show Current Drawflow JSON</Button>
+                        </div>
+                    </div>
+                    <div class="toolbar-section mb-4">
+                        <h3 class="text-info">Advanced</h3>
+                        <div class="d-flex flex-row gap-2 flex-wrap">
+                            <Button Color="Color.Primary" @onclick="AddNodeInput">Add Input</Button>
+                            <Button Color="Color.Primary" @onclick="AddNodeOutput">Add Output</Button>
+                            <Button Color="Color.Primary" @onclick="UpdateSelectedNodeData">Update Data</Button>
+                            <Button Color="Color.Primary" @onclick="CreateSampleFlow">Sample Flow</Button>
+                            <Button Color="Color.Primary" @onclick="TestDrawflow">Test Drawflow</Button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="toolbar-section">
-                <h3>View Controls</h3>
-                <div class="button-group">
-                    <button class="btn" @onclick="ZoomIn">Zoom In</button>
-                    <button class="btn" @onclick="ZoomOut">Zoom Out</button>
-                    <button class="btn" @onclick="ClearCanvas">Clear</button>
+            </LayoutSider>
+            <LayoutContent>
+                <div style="width:100%;height:100%;min-width:600px;min-height:400px;position:relative;">
+                    <Drawflow @ref="_flow"
+                             Options="_options"
+                             OnNodeCreated="HandleNodeCreated"
+                             OnNodeRemoved="HandleNodeRemoved"
+                             OnConnectionCreated="HandleConnectionCreated"
+                             OnConnectionRemoved="HandleConnectionRemoved"
+                             OnNodeSelected="HandleNodeSelected"
+                             OnNodeUnselected="HandleNodeUnselected"
+                             OnDataChanged="HandleDataChanged"
+                             OnZoomChanged="HandleZoomChanged"
+                             OnModuleChanged="HandleModuleChanged"
+                             OnModuleAdded="HandleModuleAdded"
+                             OnModuleRemoved="HandleModuleRemoved"
+                             OnImport="HandleImport"
+                             OnExport="HandleExport"
+                             Class="drawflow-editor w-100 h-100">
+                    </Drawflow>
                 </div>
-            </div>
-            <div class="toolbar-section">
-                <h3>Module Management</h3>
-                <div class="button-group">
-                    <button class="btn" @onclick="AddModuleClick">Add Module</button>
-                    <button class="btn" @onclick="ChangeModuleClick">Change Module</button>
-                    <button class="btn" @onclick="RemoveModuleClick">Remove Module</button>
-                </div>
-            </div>
-            <div class="toolbar-section">
-                <h3>Data Operations</h3>
-                <div class="button-group">
-                    <button class="btn" @onclick="ExportData">Export</button>
-                    <button class="btn" @onclick="ImportData">Import</button>
-                    <button class="btn" @onclick="RemoveSelectedNode">Remove Selected</button>
-                </div>
-            </div>
-            <div class="toolbar-section">
-                <h3>Advanced</h3>
-                <div class="button-group">
-                    <button class="btn" @onclick="AddNodeInput">Add Input</button>
-                    <button class="btn" @onclick="AddNodeOutput">Add Output</button>
-                    <button class="btn" @onclick="UpdateSelectedNodeData">Update Data</button>
-                    <button class="btn" @onclick="CreateSampleFlow">Sample Flow</button>
-                    <button class="btn" @onclick="TestDrawflow">Test Drawflow</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="center-canvas">
-        <Drawflow @ref="_flow"
-                 Options="_options"
-                 OnNodeCreated="HandleNodeCreated"
-                 OnNodeRemoved="HandleNodeRemoved"
-                 OnConnectionCreated="HandleConnectionCreated"
-                 OnConnectionRemoved="HandleConnectionRemoved"
-                 OnNodeSelected="HandleNodeSelected"
-                 OnNodeUnselected="HandleNodeUnselected"
-                 OnDataChanged="HandleDataChanged"
-                 OnZoomChanged="HandleZoomChanged"
-                 OnModuleChanged="HandleModuleChanged"
-                 OnModuleAdded="HandleModuleAdded"
-                 OnModuleRemoved="HandleModuleRemoved"
-                 OnImport="HandleImport"
-                 OnExport="HandleExport"
-                 class="drawflow-editor">
-        </Drawflow>
-    </div>
-    <div class="statusbar">
-        <div class="info-panel">
-            <div class="info-section">
-                <h3>Status</h3>
-                <div class="status-info">
-                    <p><span>Nodes</span> <span class="badge">@_nodeCount</span></p>
-                    <p><span>Connections</span> <span class="badge">@_connectionCount</span></p>
-                    <p><span>Zoom</span> <span class="badge">@_currentZoom.ToString("F2")</span></p>
-                    <p><span>Module</span> <span class="badge">@_currentModule</span></p>
-                </div>
-            </div>
-            <div class="info-section">
-                <h3>Events</h3>
-                <div class="event-log">
-                    @foreach (var log in _eventLogs.Take(10))
+            </LayoutContent>
+            <LayoutSider  Class="bg-dark text-light p-4 d-flex flex-column gap-4" Style="min-width:200px;max-width:400px;overflow-x:auto;">
+                <div class="info-panel">
+                    <div class="info-section mb-4">
+                        <h3 class="text-info">Status</h3>
+                        <div class="status-info">
+                            <p><span>Nodes</span> <span class="badge bg-info">@_nodeCount</span></p>
+                            <p><span>Connections</span> <span class="badge bg-info">@_connectionCount</span></p>
+                            <p><span>Zoom</span> <span class="badge bg-info">@_currentZoom.ToString("F2")</span></p>
+                            <p><span>Module</span> <span class="badge bg-info">@_currentModule</span></p>
+                        </div>
+                    </div>
+                    <div class="info-section mb-4">
+                        <h3 class="text-info">Events</h3>
+                        <div class="event-log">
+                            @foreach (EventLog log in _eventLogs.Take(10))
+                            {
+                                <div class="log-entry">
+                                    <span class="log-time">@log.Timestamp.ToString("HH:mm:ss")</span>
+                                    <span class="log-message">@log.Message</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_exportedData))
                     {
-                        <div class="log-entry">
-                            <span class="log-time">@log.Timestamp.ToString("HH:mm:ss")</span>
-                            <span class="log-message">@log.Message</span>
+                        <div class="info-section mb-4">
+                            <h3 class="text-info">Exported Data</h3>
+                            <Textarea ReadOnly Class="export-data">@_exportedData</Textarea>
                         </div>
                     }
+                    @if (!string.IsNullOrEmpty(_currentDrawflowJson))
+                    {
+                        <div class="info-section mb-4">
+                            <h3 class="text-info">Current Drawflow JSON</h3>
+                            <Textarea ReadOnly Class="export-data">@_currentDrawflowJson</Textarea>
+                        </div>
+                    }
+                    <div class="debug-panel">
+                        <h4 class="text-info">Debug Info</h4>
+                        <div><b>Selected Node ID(s):</b> @string.Join(", ", _selectedNodeIds)</div>
+                        <Button Color="Color.Info" Class="mb-2" @onclick="ExportNodeList">Export Node List</Button>
+                        <Textarea ReadOnly Class="export-data mt-2" Style="min-height: 80px;">@_debugNodeList</Textarea>
+                    </div>
                 </div>
-            </div>
-            @if (!string.IsNullOrEmpty(_exportedData))
-            {
-                <div class="info-section">
-                    <h3>Exported Data</h3>
-                    <textarea class="export-data" readonly>@_exportedData</textarea>
-                </div>
-            }
+            </LayoutSider>
         </div>
-    </div>
-</div>
+    </LayoutContent>
+</Layout>
 
 @code {
     private Drawflow? _flow;
@@ -122,16 +150,18 @@
         ZoomValue = 0.1,
         DraggableInputs = true,
         UseUuid = true,
-        ManualCreate = true
+        ManualCreate = false // Fix: allow Drawflow to auto-initialize
     };
 
-    private int _nodeCount = 0;
-    private int _connectionCount = 0;
+    private int _nodeCount;
+    private int _connectionCount;
     private double _currentZoom = 1.0;
     private string _currentModule = "Home";
     private string _exportedData = "";
-    private string _selectedNodeId = "";
-    private readonly List<EventLog> _eventLogs = new();
+    private List<string> _selectedNodeIds = new();
+    private readonly List<EventLog> _eventLogs = [];
+    private string _currentDrawflowJson = "";
+    private string _debugNodeList = "";
 
     private class EventLog
     {
@@ -153,8 +183,9 @@
         {
             AddLog("Page loaded, initializing Drawflow component...", "info");
             await Task.Delay(500); // Give time for component to initialize
-            
-            if (_flow != null)
+
+            // Only call Create if ManualCreate is true
+            if (_flow != null && _options.ManualCreate)
             {
                 try
                 {
@@ -167,7 +198,7 @@
                     AddLog($"Error creating Drawflow: {ex.Message}", "error");
                 }
             }
-            else
+            else if (_flow == null)
             {
                 AddLog("Drawflow component is still null", "warning");
             }
@@ -206,19 +237,19 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleNodeSelected(string id)
+    private Task HandleNodeSelected(List<string> ids)
     {
-        _selectedNodeId = id;
-        AddLog($"Node selected: {id}", "info");
-        Logger.LogInformation("Node selected {Id}", id);
+        _selectedNodeIds = ids;
+        AddLog($"Node(s) selected: {string.Join(", ", ids)}", "info");
+        Logger.LogInformation($"Node(s) selected: {string.Join(", ", ids)}");
         return Task.CompletedTask;
     }
 
-    private Task HandleNodeUnselected(string id)
+    private Task HandleNodeUnselected(List<string> ids)
     {
-        _selectedNodeId = "";
-        AddLog($"Node unselected: {id}", "info");
-        Logger.LogInformation("Node unselected {Id}", id);
+        _selectedNodeIds = _selectedNodeIds.Except(ids).ToList();
+        AddLog($"Node(s) unselected: {string.Join(", ", ids)}", "info");
+        Logger.LogInformation($"Node(s) unselected: {string.Join(", ", ids)}");
         return Task.CompletedTask;
     }
 
@@ -235,7 +266,7 @@
 
     private Task HandleZoomChanged(string zoom)
     {
-        if (double.TryParse(zoom, out var zoomValue))
+        if (double.TryParse(zoom, out double zoomValue))
         {
             _currentZoom = zoomValue;
             AddLog($"Zoom changed: {zoomValue:F2}", "info");
@@ -360,6 +391,37 @@
         }
     }
 
+    private async Task AddHtmlNode()
+    {
+        if (_flow != null)
+        {
+            string html = "<div style='padding:10px; background:#e0f7fa; border-radius:8px;'><b>HTML Node</b><br/><i>This node uses raw HTML!</i></div>";
+            string jsonData = JsonSerializer.Serialize(new { label = "HTML Node" });
+            await _flow.AddNode("htmlnode", 1, 1, 200, 300, "htmlnode", jsonData, html);
+        }
+    }
+
+    private async Task AddNodeWithData()
+    {
+        if (_flow != null)
+        {
+            var data = new { label = "Data Node", value = 42, description = "This node has a data payload." };
+            string html = $"<div class='node-content'><span class='node-title'>Node With Data</span><br/><span style='font-size:0.9em;'>{data.value}</span></div>";
+            string jsonData = JsonSerializer.Serialize(data);
+            await _flow.AddNode("datanode", 1, 1, 350, 300, "datanode", jsonData, html);
+        }
+    }
+
+    private async Task AddCustomStyledNode()
+    {
+        if (_flow != null)
+        {
+            string html = "<div style='padding:12px; background:linear-gradient(90deg,#ffecd2 0%,#fcb69f 100%); border-radius:10px; color:#333;'><b>Custom Styled Node</b><br/><span style='font-size:0.9em;'>Gradient background, rounded corners, and more!</span></div>";
+            string jsonData = JsonSerializer.Serialize(new { label = "Custom Styled" });
+            await _flow.AddNode("customstyled", 2, 2, 500, 300, "customstyled", jsonData, html);
+        }
+    }
+
     private async Task ZoomIn()
     {
         if (_flow != null)
@@ -421,19 +483,38 @@
 
     private async Task RemoveSelectedNode()
     {
-        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        if (_flow != null && _selectedNodeIds.Count > 0)
         {
-            await _flow.RemoveNode(_selectedNodeId);
-            _selectedNodeId = "";
+            AddLog($"Attempting to remove node(s): {string.Join(", ", _selectedNodeIds)}", "warning");
+            Logger.LogInformation($"Attempting to remove node(s): {string.Join(", ", _selectedNodeIds)}");
+
+            foreach (string id in _selectedNodeIds)
+            {
+                await _flow.RemoveNode(id);
+            }
+
+            AddLog($"RemoveNode called for: {string.Join(", ", _selectedNodeIds)}", "warning");
+            Logger.LogInformation($"RemoveNode called for: {string.Join(", ", _selectedNodeIds)}");
+            _selectedNodeIds.Clear();
+            // Force export after removal to verify node list
+            if (_flow != null)
+                _debugNodeList = await _flow.Export();
+            StateHasChanged();
+        }
+        else
+        {
+            AddLog("No node selected for removal", "warning");
+            Logger.LogWarning("No node selected for removal");
         }
     }
 
     private async Task AddNodeInput()
     {
-        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        if (_flow != null && _selectedNodeIds.Count > 0)
         {
-            await _flow.AddNodeInput(_selectedNodeId);
-            AddLog($"Added input to node: {_selectedNodeId}", "success");
+            foreach (string id in _selectedNodeIds)
+                await _flow.AddNodeInput(id);
+            AddLog($"Added input to node(s): {string.Join(", ", _selectedNodeIds)}", "success");
         }
         else
         {
@@ -443,10 +524,11 @@
 
     private async Task AddNodeOutput()
     {
-        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        if (_flow != null && _selectedNodeIds.Count > 0)
         {
-            await _flow.AddNodeOutput(_selectedNodeId);
-            AddLog($"Added output to node: {_selectedNodeId}", "success");
+            foreach (string id in _selectedNodeIds)
+                await _flow.AddNodeOutput(id);
+            AddLog($"Added output to node(s): {string.Join(", ", _selectedNodeIds)}", "success");
         }
         else
         {
@@ -456,7 +538,7 @@
 
     private async Task UpdateSelectedNodeData()
     {
-        if (_flow != null && !string.IsNullOrEmpty(_selectedNodeId))
+        if (_flow != null && _selectedNodeIds.Count > 0)
         {
             var newData = new { 
                 name = "Updated Node", 
@@ -464,8 +546,9 @@
                 timestamp = DateTime.Now.ToString("HH:mm:ss"),
                 updated = true 
             };
-            await _flow.UpdateNodeData(_selectedNodeId, newData);
-            AddLog($"Updated node data: {_selectedNodeId}", "success");
+            foreach (string id in _selectedNodeIds)
+                await _flow.UpdateNodeData(id, newData);
+            AddLog($"Updated node data: {string.Join(", ", _selectedNodeIds)}", "success");
         }
         else
         {
@@ -478,12 +561,12 @@
         if (_flow != null)
         {
             AddLog("Creating sample workflow...", "info");
-            
+
             await _flow.Clear();
             _nodeCount = 0;
             _connectionCount = 0;
 
-            // Create a sample workflow
+            // Create nodes and ensure they are awaited before adding connections
             await _flow.AddNode("github", 0, 1, 100, 100, "github", 
                 new { name = "GitHub", icon = "🐙" }, 
                 "<div class='node-content'><span class='node-title'>GitHub</span></div>");
@@ -496,7 +579,7 @@
                 new { name = "Email", icon = "📧" }, 
                 "<div class='node-content'><span class='node-title'>Email</span></div>");
 
-            // Add connections
+            // Add connections (ensure nodes exist)
             await _flow.AddConnection("github", "slack", "output", "input");
             await _flow.AddConnection("slack", "email", "output", "input");
 
@@ -531,5 +614,21 @@
         {
             AddLog($"Error creating test node: {ex.Message}", "error");
         }
+    }
+
+    private async Task ShowCurrentDrawflow()
+    {
+        if (_flow != null)
+        {
+            _currentDrawflowJson = await _flow.Export();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExportNodeList()
+    {
+        if (_flow != null)
+            _debugNodeList = await _flow.Export();
+        StateHasChanged();
     }
 }

@@ -1,12 +1,11 @@
 [![NuGet](https://img.shields.io/nuget/v/soenneker.blazor.drawflow.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.drawflow/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.blazor.drawflow/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.blazor.drawflow/actions/workflows/publish-package.yml)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/soenneker.blazor.drawflow.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.drawflow/)
+[![](https://img.shields.io/badge/Demo-Live-blueviolet?style=for-the-badge&logo=github)](https://soenneker.github.io/soenneker.blazor.drawflow)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Blazor.Drawflow
 
 **Soenneker.Blazor.Drawflow** is a lightweight, modern Blazor wrapper for [drawflow.js](https://github.com/jerosoler/Drawflow), enabling interactive node-based diagrams in your Blazor applications. It supports advanced features like modules, zoom, import/export, and full event handling.
-
-[Demo](https://soenneker.github.io/soenneker.blazor.drawflow)
 
 ![image](https://github.com/user-attachments/assets/cda7f3b8-c440-4dcd-b035-54b2b03f0bef)
 

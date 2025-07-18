@@ -11,6 +11,7 @@ using Soenneker.Utils.AsyncSingleton;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
 using Soenneker.Blazor.Drawflow.Utils;
 using Soenneker.Extensions.ValueTask;
+using System.Collections.Generic;
 
 namespace Soenneker.Blazor.Drawflow;
 
@@ -25,6 +26,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     private readonly AsyncSingleton _scriptInitializer;
 
     private const string _module = "Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
+    private const string _interopName = "DrawflowInterop";
 
     public DrawflowInterop(IJSRuntime jSRuntime, ILogger<DrawflowInterop> logger, IResourceLoader resourceLoader) : base(jSRuntime)
     {
@@ -82,138 +84,138 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
         if (options != null)
             json = JsonUtil.Serialize(options);
 
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.create", cancellationToken, elementId, json).NoSync();
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.create", cancellationToken, elementId, json).NoSync();
     }
 
-    public async ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default)
+    public ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, data, html).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, data, html);
     }
 
-    public async ValueTask RemoveNode(string elementId, string nodeId, CancellationToken cancellationToken = default)
+    public ValueTask RemoveNode(string elementId, string nodeId, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.removeNode", cancellationToken, elementId, nodeId).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.removeNode", cancellationToken, elementId, nodeId);
     }
 
-    public async ValueTask AddConnection(string elementId, string outputNode, string inputNode, string outputClass, string inputClass, CancellationToken cancellationToken = default)
+    public ValueTask AddConnection(string elementId, string outputNode, string inputNode, string outputClass, string inputClass, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.addConnection", cancellationToken, elementId, outputNode, inputNode, outputClass, inputClass).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.addConnection", cancellationToken, elementId, outputNode, inputNode, outputClass, inputClass);
     }
 
-    public async ValueTask<string> Export(string elementId, CancellationToken cancellationToken = default)
+    public ValueTask<string> Export(string elementId, CancellationToken cancellationToken = default)
     {
-        return await JsRuntime.InvokeAsync<string>($"{nameof(DrawflowInterop)}.export", cancellationToken, elementId).NoSync();
+        return JsRuntime.InvokeAsync<string>($"{_interopName}.export", cancellationToken, elementId);
     }
 
-    public async ValueTask Import(string elementId, string json, CancellationToken cancellationToken = default)
+    public ValueTask Import(string elementId, string json, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.import", cancellationToken, elementId, json).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.import", cancellationToken, elementId, json);
     }
 
-    public async ValueTask Destroy(string elementId, CancellationToken cancellationToken = default)
+    public ValueTask Destroy(string elementId, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.destroy", cancellationToken, elementId).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.destroy", cancellationToken, elementId);
     }
 
     public ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default)
     {
-        return JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.createObserver", cancellationToken, elementId);
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.createObserver", cancellationToken, elementId);
     }
 
-    public async ValueTask AddEventListener(string elementId, string eventName, EventCallback<string> callback, CancellationToken cancellationToken = default)
+    public ValueTask AddEventListener(string elementId, string eventName, EventCallback<string> callback, CancellationToken cancellationToken = default)
     {
         var dotNet = DotNetObjectReference.Create(new CallbackInvoker(callback));
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.addEventListener", cancellationToken, elementId, eventName, dotNet).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.addEventListener", cancellationToken, elementId, eventName, dotNet);
     }
 
-    public async ValueTask ZoomIn(string elementId, CancellationToken cancellationToken = default)
+    public ValueTask ZoomIn(string elementId, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.zoomIn", cancellationToken, elementId).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.zoomIn", cancellationToken, elementId);
     }
 
-    public async ValueTask ZoomOut(string elementId, CancellationToken cancellationToken = default)
+    public ValueTask ZoomOut(string elementId, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.zoomOut", cancellationToken, elementId).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.zoomOut", cancellationToken, elementId);
     }
 
-    public async ValueTask AddModule(string elementId, string name, CancellationToken cancellationToken = default)
+    public ValueTask AddModule(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.addModule", cancellationToken, elementId, name).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.addModule", cancellationToken, elementId, name);
     }
 
-    public async ValueTask ChangeModule(string elementId, string name, CancellationToken cancellationToken = default)
+    public ValueTask ChangeModule(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.changeModule", cancellationToken, elementId, name).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.changeModule", cancellationToken, elementId, name);
     }
 
-    public async ValueTask RemoveModule(string elementId, string name, CancellationToken cancellationToken = default)
+    public ValueTask RemoveModule(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.removeModule", cancellationToken, elementId, name).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.removeModule", cancellationToken, elementId, name);
     }
 
-    public async ValueTask<IJSObjectReference?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default)
+    public ValueTask<IJSObjectReference?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        return await JsRuntime.InvokeAsync<IJSObjectReference?>($"{nameof(DrawflowInterop)}.getNodeFromId", cancellationToken, elementId, id).NoSync();
+        return JsRuntime.InvokeAsync<IJSObjectReference?>($"{_interopName}.getNodeFromId", cancellationToken, elementId, id);
     }
 
-    public async ValueTask<int[]> GetNodesFromName(string elementId, string name, CancellationToken cancellationToken = default)
+    public ValueTask<List<string>> GetNodesFromName(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        return await JsRuntime.InvokeAsync<int[]>($"{nameof(DrawflowInterop)}.getNodesFromName", cancellationToken, elementId, name).NoSync();
+        return JsRuntime.InvokeAsync<List<string>>($"{_interopName}.getNodesFromName", cancellationToken, elementId, name);
     }
 
-    public async ValueTask UpdateNodeData(string elementId, string id, object data, CancellationToken cancellationToken = default)
+    public ValueTask UpdateNodeData(string elementId, string id, object data, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.updateNodeData", cancellationToken, elementId, id, data).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.updateNodeData", cancellationToken, elementId, id, data);
     }
 
-    public async ValueTask AddNodeInput(string elementId, string id, CancellationToken cancellationToken = default)
+    public ValueTask AddNodeInput(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.addNodeInput", cancellationToken, elementId, id).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.addNodeInput", cancellationToken, elementId, id);
     }
 
-    public async ValueTask AddNodeOutput(string elementId, string id, CancellationToken cancellationToken = default)
+    public ValueTask AddNodeOutput(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.addNodeOutput", cancellationToken, elementId, id).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.addNodeOutput", cancellationToken, elementId, id);
     }
 
-    public async ValueTask RemoveNodeInput(string elementId, string id, string inputClass, CancellationToken cancellationToken = default)
+    public ValueTask RemoveNodeInput(string elementId, string id, string inputClass, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.removeNodeInput", cancellationToken, elementId, id, inputClass).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.removeNodeInput", cancellationToken, elementId, id, inputClass);
     }
 
-    public async ValueTask RemoveNodeOutput(string elementId, string id, string outputClass, CancellationToken cancellationToken = default)
+    public ValueTask RemoveNodeOutput(string elementId, string id, string outputClass, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.removeNodeOutput", cancellationToken, elementId, id, outputClass).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.removeNodeOutput", cancellationToken, elementId, id, outputClass);
     }
 
-    public async ValueTask RemoveSingleConnection(string elementId, string outId, string inId, string outClass, string inClass, CancellationToken cancellationToken = default)
+    public ValueTask RemoveSingleConnection(string elementId, string outId, string inId, string outClass, string inClass, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.removeSingleConnection", cancellationToken, elementId, outId, inId, outClass, inClass).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.removeSingleConnection", cancellationToken, elementId, outId, inId, outClass, inClass);
     }
 
-    public async ValueTask UpdateConnectionNodes(string elementId, string id, CancellationToken cancellationToken = default)
+    public ValueTask UpdateConnectionNodes(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.updateConnectionNodes", cancellationToken, elementId, id).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.updateConnectionNodes", cancellationToken, elementId, id);
     }
 
-    public async ValueTask RemoveConnectionNodeId(string elementId, string id, CancellationToken cancellationToken = default)
+    public ValueTask RemoveConnectionNodeId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.removeConnectionNodeId", cancellationToken, elementId, id).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.removeConnectionNodeId", cancellationToken, elementId, id);
     }
 
-    public async ValueTask<string?> GetModuleFromNodeId(string elementId, string id, CancellationToken cancellationToken = default)
+    public ValueTask<string?> GetModuleFromNodeId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        return await JsRuntime.InvokeAsync<string?>($"{nameof(DrawflowInterop)}.getModuleFromNodeId", cancellationToken, elementId, id).NoSync();
+        return JsRuntime.InvokeAsync<string?>($"{_interopName}.getModuleFromNodeId", cancellationToken, elementId, id);
     }
 
-    public async ValueTask ClearModuleSelected(string elementId, CancellationToken cancellationToken = default)
+    public ValueTask ClearModuleSelected(string elementId, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.clearModuleSelected", cancellationToken, elementId).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.clearModuleSelected", cancellationToken, elementId);
     }
 
-    public async ValueTask Clear(string elementId, CancellationToken cancellationToken = default)
+    public ValueTask Clear(string elementId, CancellationToken cancellationToken = default)
     {
-        await JsRuntime.InvokeVoidAsync($"{nameof(DrawflowInterop)}.clear", cancellationToken, elementId).NoSync();
+        return JsRuntime.InvokeVoidAsync($"{_interopName}.clear", cancellationToken, elementId);
     }
 
     public async ValueTask DisposeAsync()

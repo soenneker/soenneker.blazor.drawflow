@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Soenneker.Blazor.Drawflow.Options;
+using System.Collections.Generic;
 
 namespace Soenneker.Blazor.Drawflow.Abstract;
 
@@ -31,7 +32,7 @@ public interface  IDrawflowInterop : IAsyncDisposable
     ValueTask RemoveModule(string elementId, string name, CancellationToken cancellationToken = default);
 
     ValueTask<IJSObjectReference?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default);
-    ValueTask<int[]> GetNodesFromName(string elementId, string name, CancellationToken cancellationToken = default);
+    ValueTask<List<string>> GetNodesFromName(string elementId, string name, CancellationToken cancellationToken = default);
     ValueTask UpdateNodeData(string elementId, string id, object data, CancellationToken cancellationToken = default);
     ValueTask AddNodeInput(string elementId, string id, CancellationToken cancellationToken = default);
     ValueTask AddNodeOutput(string elementId, string id, CancellationToken cancellationToken = default);
