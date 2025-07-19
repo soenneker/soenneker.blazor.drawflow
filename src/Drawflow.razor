@@ -1,7 +1,6 @@
 @using System.Text.Json
 @using System.Threading
 @using Microsoft.Extensions.Logging
-@using Microsoft.JSInterop
 @using Soenneker.Blazor.Drawflow.Abstract
 @using Soenneker.Blazor.Drawflow.Dtos
 @using Soenneker.Blazor.Drawflow.Options
@@ -27,6 +26,7 @@
     private readonly string _elementId;
 
     private readonly CancellationTokenSource _cTs;
+    private readonly List<EventLog> _eventLogs = new();
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object>? Attributes { get; set; }
@@ -87,16 +87,6 @@
 
     private bool _initializing;
     private bool _initialized;
-
-    private int _nodeCount = 0;
-    private int _connectionCount = 0;
-    private double _currentZoom = 1.0;
-    private string _currentModule = "Home";
-    private string _exportedData = "";
-    private string _selectedNodeId = "";
-    private readonly List<EventLog> _eventLogs = [];
-    private string _currentDrawflowJson = "";
-    private string _debugNodeList = "";
 
     private class EventLog
     {
@@ -315,7 +305,7 @@
         await DrawflowInterop.RemoveConnectionNodeId(_elementId, nodeId, linkedCts.Token).NoSync();
     }
 
-    public async ValueTask<IJSObjectReference?> GetNodeFromId(string id, CancellationToken cancellationToken = default)
+    public async ValueTask<DrawflowNode?> GetNodeFromId(string id, CancellationToken cancellationToken = default)
     {
         if (!_initialized)
             throw new InvalidOperationException("Drawflow is not initialized.");

@@ -118,21 +118,21 @@
                     {
                         <div class="info-section mb-4">
                             <h3 class="text-info">Exported Data</h3>
-                            <Textarea ReadOnly Class="export-data">@_exportedData</Textarea>
+                            <textarea ReadOnly Class="export-data">@_exportedData</textarea>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(_currentDrawflowJson))
                     {
                         <div class="info-section mb-4">
                             <h3 class="text-info">Current Drawflow JSON</h3>
-                            <Textarea ReadOnly Class="export-data">@_currentDrawflowJson</Textarea>
+                            <textarea ReadOnly Class="export-data">@_currentDrawflowJson</textarea>
                         </div>
                     }
                     <div class="debug-panel">
                         <h4 class="text-info">Debug Info</h4>
                         <div><b>Selected Node ID(s):</b> @string.Join(", ", _selectedNodeIds)</div>
                         <Button Color="Color.Info" Class="mb-2" @onclick="ExportNodeList">Export Node List</Button>
-                        <Textarea ReadOnly Class="export-data mt-2" Style="min-height: 80px;">@_debugNodeList</Textarea>
+                        <textarea ReadOnly Class="export-data mt-2" Style="min-height: 80px;">@_debugNodeList</textarea>
                     </div>
                 </div>
             </LayoutSider>
@@ -569,22 +569,25 @@
             _nodeCount = 0;
             _connectionCount = 0;
 
-            // Create nodes and ensure they are awaited before adding connections
-            await _flow.AddNode("github", 0, 1, 100, 100, "github", 
-                new { name = "GitHub", icon = "🐙" }, 
-                "<div class='node-content'><span class='node-title'>GitHub</span></div>");
+            // Add nodes
+            await _flow.AddNode("github", 0, 1, 100, 100, "github", new { name = "GitHub", icon = "🐙" }, "<div class='node-content'><span class='node-title'>GitHub</span></div>");
+            await _flow.AddNode("slack", 1, 1, 300, 100, "slack", new { name = "Slack", icon = "💬" }, "<div class='node-content'><span class='node-title'>Slack</span></div>");
+            await _flow.AddNode("email", 1, 0, 500, 100, "email", new { name = "Email", icon = "📧" }, "<div class='node-content'><span class='node-title'>Email</span></div>");
 
-            await _flow.AddNode("slack", 1, 1, 300, 100, "slack", 
-                new { name = "Slack", icon = "💬" }, 
-                "<div class='node-content'><span class='node-title'>Slack</span></div>");
+            // Retrieve actual node IDs by name
+            var githubIds = await _flow.GetNodesFromName("github");
+            var slackIds = await _flow.GetNodesFromName("slack");
+            var emailIds = await _flow.GetNodesFromName("email");
 
-            await _flow.AddNode("email", 1, 0, 500, 100, "email", 
-                new { name = "Email", icon = "📧" }, 
-                "<div class='node-content'><span class='node-title'>Email</span></div>");
+            string githubId = githubIds.FirstOrDefault();
+            string slackId = slackIds.FirstOrDefault();
+            string emailId = emailIds.FirstOrDefault();
 
-            // Add connections (ensure nodes exist)
-            await _flow.AddConnection("github", "slack", "output", "input");
-            await _flow.AddConnection("slack", "email", "output", "input");
+            // Add connections using actual node IDs and correct port names
+            if (!string.IsNullOrEmpty(githubId) && !string.IsNullOrEmpty(slackId))
+                await _flow.AddConnection(githubId, slackId, "output_1", "input_1");
+            if (!string.IsNullOrEmpty(slackId) && !string.IsNullOrEmpty(emailId))
+                await _flow.AddConnection(slackId, emailId, "output_1", "input_1");
 
             AddLog("Created sample workflow", "success");
         }

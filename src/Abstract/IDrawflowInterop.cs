@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using Soenneker.Blazor.Drawflow.Options;
 using System;
 using System.Collections.Generic;
@@ -181,8 +180,8 @@ public interface IDrawflowInterop : IAsyncDisposable
     /// <param name="elementId">The drawflow element ID</param>
     /// <param name="id">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>JavaScript object reference to the node</returns>
-    ValueTask<IJSObjectReference?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default);
+    /// <returns>Strongly-typed DrawflowNode object, or null if not found</returns>
+    ValueTask<DrawflowNode?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get all nodes with a specific name

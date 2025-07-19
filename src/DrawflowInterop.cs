@@ -49,7 +49,8 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
                 useCdn = (bool) obj[0];
 
             (string? uri, string? integrity) style = DrawflowUtil.GetUriAndIntegrityForStyle(useCdn);
-
+            if (string.IsNullOrEmpty(style.uri))
+                throw new InvalidOperationException("Style URI cannot be null or empty.");
             await _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token).NoSync();
             return new object();
         });
@@ -62,7 +63,8 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
                 useCdn = (bool) obj[0];
 
             (string? uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
-
+            if (string.IsNullOrEmpty(script.uri))
+                throw new InvalidOperationException("Script URI cannot be null or empty.");
             await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token).NoSync();
             return new object();
         });
@@ -198,9 +200,12 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
         return JsRuntime.InvokeVoidAsync($"{_interopName}.removeModule", cancellationToken, elementId, name);
     }
 
-    public ValueTask<IJSObjectReference?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default)
+    public async ValueTask<DrawflowNode?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        return JsRuntime.InvokeAsync<IJSObjectReference?>($"{_interopName}.getNodeFromId", cancellationToken, elementId, id);
+        var json = await JsRuntime.InvokeAsync<string>($"{_interopName}.getNodeFromId", cancellationToken, elementId, id).NoSync();
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+        return JsonUtil.Deserialize<DrawflowNode>(json);
     }
 
     public ValueTask<List<string>> GetNodesFromName(string elementId, string name, CancellationToken cancellationToken = default)
