@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.Logging
 @using Microsoft.JSInterop
 @using Soenneker.Blazor.Drawflow.Abstract
+@using Soenneker.Blazor.Drawflow.Models
 @using Soenneker.Blazor.Drawflow.Options
 @using Soenneker.Extensions.Task
 @using Soenneker.Extensions.ValueTask
@@ -359,7 +360,16 @@
         await DrawflowInterop.ClearModuleSelected(_elementId, linkedCts.Token).NoSync();
     }
 
-    public async ValueTask<string> Export(CancellationToken cancellationToken = default)
+    public async ValueTask<string> ExportAsJson(CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.ExportAsJson(_elementId, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<DrawflowExport> Export(CancellationToken cancellationToken = default)
     {
         if (!_initialized)
             throw new InvalidOperationException("Drawflow is not initialized.");
@@ -474,6 +484,196 @@
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
         await DrawflowInterop.Clear(_elementId, linkedCts.Token).NoSync();
+    }
+
+    // Additional methods from Drawflow documentation
+    public async ValueTask SetZoom(double zoom, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.SetZoom(_elementId, zoom, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<double> GetZoom(CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetZoom(_elementId, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask CenterNode(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.CenterNode(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<object> GetNodePosition(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetNodePosition(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask SetNodePosition(string id, int posX, int posY, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.SetNodePosition(_elementId, id, posX, posY, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<string> GetNodeHtml(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetNodeHtml(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask SetNodeHtml(string id, string html, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.SetNodeHtml(_elementId, id, html, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<string> GetNodeClass(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetNodeClass(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask SetNodeClass(string id, string className, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.SetNodeClass(_elementId, id, className, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<string> GetNodeName(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetNodeName(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask SetNodeName(string id, string name, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.SetNodeName(_elementId, id, name, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<List<object>> GetNodeConnections(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetNodeConnections(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<bool> IsNodeSelected(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.IsNodeSelected(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask SelectNode(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.SelectNode(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask UnselectNode(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.UnselectNode(_elementId, id, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<List<string>> GetSelectedNodes(CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetSelectedNodes(_elementId, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask ClearSelectedNodes(CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.ClearSelectedNodes(_elementId, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<string> GetCurrentModule(CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetCurrentModule(_elementId, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<List<string>> GetModules(CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.GetModules(_elementId, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask<bool> IsEditMode(CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        return await DrawflowInterop.IsEditMode(_elementId, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask SetEditMode(bool editMode, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.SetEditMode(_elementId, editMode, linkedCts.Token).NoSync();
     }
 
     public async ValueTask DisposeAsync()

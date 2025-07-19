@@ -467,7 +467,7 @@
     {
         if (_flow != null)
         {
-            _exportedData = await _flow.Export();
+            _exportedData = await _flow.ExportAsJson();
             AddLog("Data exported successfully", "success");
         }
     }
@@ -498,7 +498,7 @@
             _selectedNodeIds.Clear();
             // Force export after removal to verify node list
             if (_flow != null)
-                _debugNodeList = await _flow.Export();
+                _debugNodeList = await _flow.ExportAsJson();
             StateHasChanged();
         }
         else
@@ -620,7 +620,7 @@
     {
         if (_flow != null)
         {
-            _currentDrawflowJson = await _flow.Export();
+            _currentDrawflowJson = await _flow.ExportAsJson();
             StateHasChanged();
         }
     }
@@ -628,7 +628,7 @@
     private async Task ExportNodeList()
     {
         if (_flow != null)
-            _debugNodeList = await _flow.Export();
+            _debugNodeList = await _flow.ExportAsJson();
         StateHasChanged();
     }
 }

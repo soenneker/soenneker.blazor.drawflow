@@ -75,7 +75,12 @@ builder.Services.AddDrawflowInteropAsScoped();
 await Flow.AddNode("github", 1, 1, 150, 150, "github", new { name = "GitHub" }, "<div>GitHub</div>");
 await Flow.AddConnection("github", "slack", "output", "input");
 await Flow.ZoomIn();
-await Flow.Export();
+
+// Export as strongly-typed object
+DrawflowGraph graph = await Flow.Export();
+
+// Export as JSON string
+string json = await Flow.ExportAsJson();
 ```
 
 ### Options
@@ -91,4 +96,48 @@ var options = new DrawflowOptions {
     UseUuid = true,
     ManualCreate = false // auto-create on render
 };
+```
+
+### Export Models
+
+The library provides strongly-typed models for working with exported drawflow data:
+
+```csharp
+// Main graph structure
+public class DrawflowGraph
+{
+    public Dictionary<string, DrawflowModule>? Drawflow { get; set; }
+}
+
+// Module containing nodes
+public class DrawflowModule
+{
+    public Dictionary<string, DrawflowNode>? Data { get; set; }
+}
+
+// Individual node with connections
+public class DrawflowNode
+{
+    public string? Id { get; set; }
+    public string? Name { get; set; }
+    public Dictionary<string, object>? Data { get; set; }
+    public Dictionary<string, DrawflowNodeIO>? Inputs { get; set; }
+    public Dictionary<string, DrawflowNodeIO>? Outputs { get; set; }
+    public int PosX { get; set; }
+    public int PosY { get; set; }
+}
+
+// Input/Output connections
+public class DrawflowNodeIO
+{
+    public List<DrawflowConnection>? Connections { get; set; }
+}
+
+// Connection between nodes
+public class DrawflowConnection
+{
+    public string? Node { get; set; }
+    public string? Input { get; set; }
+    public string? Output { get; set; }
+}
 ```
