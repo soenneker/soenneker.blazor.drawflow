@@ -71,16 +71,75 @@ builder.Services.AddDrawflowInteropAsScoped();
 
 ### Programmatic API
 
+The Drawflow component implements `IDrawflow` interface, providing a clean API for programmatic control:
+
 ```csharp
+// Using the component reference
 await Flow.AddNode("github", 1, 1, 150, 150, "github", new { name = "GitHub" }, "<div>GitHub</div>");
 await Flow.AddConnection("github", "slack", "output", "input");
 await Flow.ZoomIn();
 
 // Export as strongly-typed object
-DrawflowGraph graph = await Flow.Export();
+DrawflowExport graph = await Flow.Export();
 
 // Export as JSON string
 string json = await Flow.ExportAsJson();
+```
+
+### Interface Usage
+
+You can also use the `IDrawflow` interface for dependency injection and testing:
+
+```csharp
+// In your service registration
+services.AddScoped<IDrawflow, Drawflow>();
+
+// In your component or service
+@inject IDrawflow DrawflowService
+
+// Usage
+await DrawflowService.AddNode("test", 1, 1, 100, 100, "test", null, "<div>Test</div>");
+```
+
+### Strongly-Typed Methods
+
+The library provides overload methods that accept strongly-typed objects for better type safety and IntelliSense support:
+
+```csharp
+// Add node using strongly-typed DrawflowNode
+var node = new DrawflowNode
+{
+    Name = "MyNode",
+    PosX = 100,
+    PosY = 100,
+    Class = "my-node",
+    Html = "<div>My Node</div>",
+    Data = new Dictionary<string, object> { ["key"] = "value" }
+};
+await Flow.AddNode(node);
+
+// Add module using strongly-typed DrawflowModule
+var module = new DrawflowModule
+{
+    Data = new Dictionary<string, DrawflowNode>
+    {
+        ["node1"] = new DrawflowNode { Name = "Node1", PosX = 100, PosY = 100 }
+    }
+};
+await Flow.AddModule("MyModule", module);
+
+// Import using strongly-typed DrawflowExport
+var drawflowExport = new DrawflowExport
+{
+    Drawflow = new Dictionary<string, DrawflowModule>
+    {
+        ["Home"] = new DrawflowModule { Data = new Dictionary<string, DrawflowNode>() }
+    }
+};
+await Flow.Import(drawflowExport);
+
+// Import from JSON string
+await Flow.Import(jsonString);
 ```
 
 ### Options
@@ -104,7 +163,7 @@ The library provides strongly-typed models for working with exported drawflow da
 
 ```csharp
 // Main graph structure
-public class DrawflowGraph
+public class DrawflowExport
 {
     public Dictionary<string, DrawflowModule>? Drawflow { get; set; }
 }

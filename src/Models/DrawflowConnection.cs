@@ -5,7 +5,7 @@ namespace Soenneker.Blazor.Drawflow.Models;
 /// <summary>
 /// Represents a connection between nodes
 /// </summary>
-public class DrawflowConnection
+public sealed class DrawflowConnection
 {
     /// <summary>
     /// The node ID this connection is connected to

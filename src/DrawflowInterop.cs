@@ -10,6 +10,7 @@ using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Utils.AsyncSingleton;
 using Soenneker.Utils.Json;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +94,17 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
         return JsRuntime.InvokeVoidAsync($"{_interopName}.addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, data, html);
     }
 
+    public async ValueTask AddNode(string elementId, DrawflowNode node, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(node.Name))
+            throw new ArgumentException("Node name cannot be null or empty", nameof(node));
+
+        int inputs = node.Inputs?.Count ?? 0;
+        int outputs = node.Outputs?.Count ?? 0;
+
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.addNode", cancellationToken, elementId, node.Name, inputs, outputs, node.PosX, node.PosY, node.Class ?? "", node.Data, node.Html ?? "").NoSync();
+    }
+
     public ValueTask RemoveNode(string elementId, string nodeId, CancellationToken cancellationToken = default)
     {
         return JsRuntime.InvokeVoidAsync($"{_interopName}.removeNode", cancellationToken, elementId, nodeId);
@@ -118,6 +130,14 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     {
         return JsRuntime.InvokeVoidAsync($"{_interopName}.import", cancellationToken, elementId, json);
     }
+
+    public async ValueTask Import(string elementId, DrawflowExport drawflowExport, CancellationToken cancellationToken = default)
+    {
+        string json = JsonUtil.Serialize(drawflowExport);
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.import", cancellationToken, elementId, json).NoSync();
+    }
+
+
 
     public ValueTask Destroy(string elementId, CancellationToken cancellationToken = default)
     {
@@ -148,6 +168,24 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     public ValueTask AddModule(string elementId, string name, CancellationToken cancellationToken = default)
     {
         return JsRuntime.InvokeVoidAsync($"{_interopName}.addModule", cancellationToken, elementId, name);
+    }
+
+    public async ValueTask AddModule(string elementId, string moduleName, DrawflowModule module, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(moduleName))
+            throw new ArgumentException("Module name cannot be null or empty", nameof(moduleName));
+
+        // First add the module
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.addModule", cancellationToken, elementId, moduleName).NoSync();
+
+        // Then add all nodes in the module
+        if (module.Data != null)
+        {
+            foreach (var node in module.Data.Values)
+            {
+                await AddNode(elementId, node, cancellationToken).NoSync();
+            }
+        }
     }
 
     public ValueTask ChangeModule(string elementId, string name, CancellationToken cancellationToken = default)

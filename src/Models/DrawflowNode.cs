@@ -6,7 +6,7 @@ namespace Soenneker.Blazor.Drawflow.Models;
 /// <summary>
 /// Represents a node within a drawflow module with all its properties and connections
 /// </summary>
-public class DrawflowNode
+public sealed class DrawflowNode
 {
     /// <summary>
     /// Unique identifier for the node

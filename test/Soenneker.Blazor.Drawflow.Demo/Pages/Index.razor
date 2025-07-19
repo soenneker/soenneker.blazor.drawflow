@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Logging
 @using Soenneker.Blazor.Drawflow.Options
 @using Soenneker.Blazor.Drawflow
+@using Soenneker.Blazor.Drawflow.Models
 @using System.Text.Json
 @inject ILogger<Index> Logger
 
@@ -11,9 +12,7 @@
             <span class="fw-bold fs-4">Drawflow Blazor Demo</span>
         </BarBrand>
         <BarEnd>
-            <Link To="https://github.com/Soenneker/soenneker.blazor.drawflow" Target="Target.Blank" Title="View on GitHub">
-                <i class="fa-brands fa-github fa-2xl"></i>
-            </Link>
+            <Link To="https://github.com/Soenneker/soenneker.blazor.drawflow" Target="Target.Blank" Title="View on GitHub" />
         </BarEnd>
     </Bar>
     <LayoutContent>
@@ -63,6 +62,10 @@
                             <Button Color="Color.Primary" @onclick="UpdateSelectedNodeData">Update Data</Button>
                             <Button Color="Color.Primary" @onclick="CreateSampleFlow">Sample Flow</Button>
                             <Button Color="Color.Primary" @onclick="TestDrawflow">Test Drawflow</Button>
+                            <Button Color="Color.Primary" @onclick="AddTypedNode">Add Typed Node</Button>
+                            <Button Color="Color.Primary" @onclick="AddTypedModule">Add Typed Module</Button>
+                            <Button Color="Color.Primary" @onclick="ImportTypedData">Import Typed Data</Button>
+                            <Button Color="Color.Primary" @onclick="ImportJsonData">Import JSON Data</Button>
                         </div>
                     </div>
                 </div>
@@ -630,5 +633,148 @@
         if (_flow != null)
             _debugNodeList = await _flow.ExportAsJson();
         StateHasChanged();
+    }
+
+    private async Task AddTypedNode()
+    {
+        if (_flow != null)
+        {
+            var node = new DrawflowNode
+            {
+                Name = "TypedNode",
+                PosX = 400,
+                PosY = 200,
+                Class = "typed-node",
+                Html = "<div class='node-content'><span class='node-title'>Typed Node</span><br/><span style='font-size:0.9em;'>Created with strongly-typed DrawflowNode</span></div>",
+                Data = new Dictionary<string, object>
+                {
+                    ["name"] = "Typed Node",
+                    ["icon"] = "🔧",
+                    ["created"] = DateTime.Now.ToString("HH:mm:ss"),
+                    ["type"] = "strongly-typed"
+                }
+            };
+
+            await _flow.AddNode(node);
+            AddLog("Added strongly-typed node", "success");
+        }
+    }
+
+    private async Task AddTypedModule()
+    {
+        if (_flow != null)
+        {
+            var module = new DrawflowModule
+            {
+                Data = new Dictionary<string, DrawflowNode>
+                {
+                    ["typed-node-1"] = new DrawflowNode
+                    {
+                        Name = "TypedNode1",
+                        PosX = 100,
+                        PosY = 100,
+                        Class = "typed-module-node",
+                        Html = "<div class='node-content'><span class='node-title'>Module Node 1</span></div>",
+                        Data = new Dictionary<string, object> { ["module"] = "typed" }
+                    },
+                    ["typed-node-2"] = new DrawflowNode
+                    {
+                        Name = "TypedNode2",
+                        PosX = 300,
+                        PosY = 100,
+                        Class = "typed-module-node",
+                        Html = "<div class='node-content'><span class='node-title'>Module Node 2</span></div>",
+                        Data = new Dictionary<string, object> { ["module"] = "typed" }
+                    }
+                }
+            };
+
+            await _flow.AddModule("TypedModule", module);
+            AddLog("Added strongly-typed module with nodes", "success");
+        }
+    }
+
+    private async Task ImportTypedData()
+    {
+        if (_flow != null)
+        {
+            var drawflowExport = new DrawflowExport
+            {
+                Drawflow = new Dictionary<string, DrawflowModule>
+                {
+                    ["ImportedModule"] = new DrawflowModule
+                    {
+                        Data = new Dictionary<string, DrawflowNode>
+                        {
+                            ["imported-node-1"] = new DrawflowNode
+                            {
+                                Name = "ImportedNode1",
+                                PosX = 200,
+                                PosY = 300,
+                                Class = "imported-node",
+                                Html = "<div class='node-content'><span class='node-title'>Imported Node 1</span><br/><span style='font-size:0.9em;'>Created via Import with DrawflowExport</span></div>",
+                                Data = new Dictionary<string, object>
+                                {
+                                    ["name"] = "Imported Node 1",
+                                    ["icon"] = "📥",
+                                    ["imported"] = DateTime.Now.ToString("HH:mm:ss"),
+                                    ["method"] = "Import"
+                                }
+                            },
+                            ["imported-node-2"] = new DrawflowNode
+                            {
+                                Name = "ImportedNode2",
+                                PosX = 400,
+                                PosY = 300,
+                                Class = "imported-node",
+                                Html = "<div class='node-content'><span class='node-title'>Imported Node 2</span><br/><span style='font-size:0.9em;'>Created via Import with DrawflowExport</span></div>",
+                                Data = new Dictionary<string, object>
+                                {
+                                    ["name"] = "Imported Node 2",
+                                    ["icon"] = "📥",
+                                    ["imported"] = DateTime.Now.ToString("HH:mm:ss"),
+                                    ["method"] = "Import"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            await _flow.Import(drawflowExport);
+            AddLog("Imported strongly-typed data", "success");
+        }
+    }
+
+    private async Task ImportJsonData()
+    {
+        if (_flow != null)
+        {
+            string jsonData = @"{
+                ""drawflow"": {
+                    ""JsonModule"": {
+                        ""data"": {
+                            ""json-node-1"": {
+                                ""id"": ""json-node-1"",
+                                ""name"": ""JsonNode1"",
+                                ""pos_x"": 250,
+                                ""pos_y"": 400,
+                                ""class"": ""json-node"",
+                                ""html"": ""<div class='node-content'><span class='node-title'>JSON Node 1</span><br/><span style='font-size:0.9em;'>Created via Import with JSON string</span></div>"",
+                                ""data"": {
+                                    ""name"": ""JSON Node 1"",
+                                    ""icon"": ""📄"",
+                                    ""imported"": """ + DateTime.Now.ToString("HH:mm:ss") + @""",
+                                    ""method"": ""Import JSON""
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+            await _flow.Import(jsonData);
+            AddLog("Imported JSON data", "success");
+        }
     }
 }

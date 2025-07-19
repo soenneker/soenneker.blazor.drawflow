@@ -52,6 +52,14 @@ public interface IDrawflowInterop : IAsyncDisposable
     ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Add a new node to the drawflow using strongly-typed DrawflowNode
+    /// </summary>
+    /// <param name="elementId">The drawflow element ID</param>
+    /// <param name="node">Strongly-typed DrawflowNode object</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    ValueTask AddNode(string elementId, DrawflowNode node, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Remove a node from the drawflow
     /// </summary>
     /// <param name="elementId">The drawflow element ID</param>
@@ -95,6 +103,16 @@ public interface IDrawflowInterop : IAsyncDisposable
     ValueTask Import(string elementId, string json, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Import drawflow data from strongly-typed object
+    /// </summary>
+    /// <param name="elementId">The drawflow element ID</param>
+    /// <param name="drawflowExport">Strongly-typed DrawflowExport object to import</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    ValueTask Import(string elementId, DrawflowExport drawflowExport, CancellationToken cancellationToken = default);
+
+
+
+    /// <summary>
     /// Destroy the drawflow instance
     /// </summary>
     /// <param name="elementId">The drawflow element ID</param>
@@ -131,6 +149,15 @@ public interface IDrawflowInterop : IAsyncDisposable
     /// <param name="name">Name of the module</param>
     /// <param name="cancellationToken">Cancellation token</param>
     ValueTask AddModule(string elementId, string name, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Add a new module to the drawflow using strongly-typed DrawflowModule
+    /// </summary>
+    /// <param name="elementId">The drawflow element ID</param>
+    /// <param name="moduleName">Name of the module</param>
+    /// <param name="module">Strongly-typed DrawflowModule object</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    ValueTask AddModule(string elementId, string moduleName, DrawflowModule module, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Change to a different module

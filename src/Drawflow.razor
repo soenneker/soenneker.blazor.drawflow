@@ -13,7 +13,7 @@
 @inject IDrawflowInterop DrawflowInterop
 @inject ILogger<Drawflow> _logger
 
-@implements IAsyncDisposable
+@implements IDrawflow
 
 <div id="@_observerId"></div>
 <div id="@_wrapperId">
@@ -279,6 +279,15 @@
         await DrawflowInterop.AddNode(_elementId, name, inputs, outputs, posX, posY, className, dataToSend, html, linkedCts.Token).NoSync();
     }
 
+    public async ValueTask AddNode(DrawflowNode node, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.AddNode(_elementId, node, linkedCts.Token).NoSync();
+    }
+
     public async ValueTask AddConnection(string outputNode, string inputNode, string outputClass, string inputClass, CancellationToken cancellationToken = default)
     {
         if (!_initialized)
@@ -387,6 +396,15 @@
         await DrawflowInterop.Import(_elementId, json, linkedCts.Token).NoSync();
     }
 
+    public async ValueTask Import(DrawflowExport drawflowExport, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.Import(_elementId, drawflowExport, linkedCts.Token).NoSync();
+    }
+
     public async ValueTask ZoomIn(CancellationToken cancellationToken = default)
     {
         if (!_initialized)
@@ -412,6 +430,15 @@
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
         await DrawflowInterop.AddModule(_elementId, name, linkedCts.Token).NoSync();
+    }
+
+    public async ValueTask AddModule(string moduleName, DrawflowModule module, CancellationToken cancellationToken = default)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("Drawflow is not initialized.");
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cTs.Token);
+        await DrawflowInterop.AddModule(_elementId, moduleName, module, linkedCts.Token).NoSync();
     }
 
     public async ValueTask ChangeModule(string name, CancellationToken cancellationToken = default)
@@ -486,7 +513,6 @@
         await DrawflowInterop.Clear(_elementId, linkedCts.Token).NoSync();
     }
 
-    // Additional methods from Drawflow documentation
     public async ValueTask SetZoom(double zoom, CancellationToken cancellationToken = default)
     {
         if (!_initialized)
