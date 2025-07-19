@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Soenneker.Blazor.Drawflow.Models;
 using Soenneker.Blazor.Drawflow.Options;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Soenneker.Blazor.Drawflow.Dtos;
 
 namespace Soenneker.Blazor.Drawflow.Abstract;
 

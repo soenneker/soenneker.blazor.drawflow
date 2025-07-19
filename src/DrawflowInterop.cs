@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Soenneker.Blazor.Drawflow.Abstract;
-using Soenneker.Blazor.Drawflow.Models;
 using Soenneker.Blazor.Drawflow.Options;
 using Soenneker.Blazor.Drawflow.Utils;
 using Soenneker.Blazor.Utils.EventListeningInterop;
@@ -14,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Soenneker.Blazor.Drawflow.Dtos;
 
 namespace Soenneker.Blazor.Drawflow;
 
