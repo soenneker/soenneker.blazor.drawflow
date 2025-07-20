@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Soenneker.Blazor.Drawflow.Abstract;
 using Soenneker.Blazor.Drawflow.Options;
@@ -20,7 +19,6 @@ namespace Soenneker.Blazor.Drawflow;
 /// <inheritdoc cref="IDrawflowInterop"/>
 public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 {
-    private readonly ILogger<DrawflowInterop> _logger;
     private readonly IResourceLoader _resourceLoader;
 
     private readonly AsyncSingleton _interopInitializer;
@@ -30,27 +28,19 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     private const string _module = "Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
     private const string _interopName = "DrawflowInterop";
 
-    public DrawflowInterop(IJSRuntime jSRuntime, ILogger<DrawflowInterop> logger, IResourceLoader resourceLoader) : base(jSRuntime)
+    public DrawflowInterop(IJSRuntime jSRuntime, IResourceLoader resourceLoader) : base(jSRuntime)
     {
-        _logger = logger;
         _resourceLoader = resourceLoader;
-
-        _interopInitializer = new AsyncSingleton(async (token, _) =>
-        {
-            await resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token).NoSync();
-            return new object();
-        });
 
         _styleInitializer = new AsyncSingleton(async (token, obj) =>
         {
             var useCdn = true;
 
             if (obj.Length > 0)
-                useCdn = (bool) obj[0];
+                useCdn = (bool)obj[0];
 
-            (string? uri, string? integrity) style = DrawflowUtil.GetUriAndIntegrityForStyle(useCdn);
-            if (string.IsNullOrEmpty(style.uri))
-                throw new InvalidOperationException("Style URI cannot be null or empty.");
+            (string uri, string? integrity) style = DrawflowUtil.GetUriAndIntegrityForStyle(useCdn);
+
             await _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token).NoSync();
             return new object();
         });
@@ -60,28 +50,35 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
             var useCdn = true;
 
             if (obj.Length > 0)
-                useCdn = (bool) obj[0];
+                useCdn = (bool)obj[0];
 
             (string? uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
-            if (string.IsNullOrEmpty(script.uri))
-                throw new InvalidOperationException("Script URI cannot be null or empty.");
+
             await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token).NoSync();
+            return new object();
+        });
+
+        _interopInitializer = new AsyncSingleton(async (token, _) =>
+        {
+            await resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token).NoSync();
             return new object();
         });
     }
 
-    public ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
+    public async ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
     {
-        return _interopInitializer.Init(cancellationToken, useCdn);
+        await _styleInitializer.Init(cancellationToken, useCdn).NoSync();
+        await _scriptInitializer.Init(cancellationToken, useCdn).NoSync();
+        await _interopInitializer.Init(cancellationToken).NoSync();
     }
 
     public async ValueTask Create(string elementId, DrawflowOptions? options = null, CancellationToken cancellationToken = default)
     {
         bool useCdn = options?.UseCdn ?? true;
 
-        await _interopInitializer.Init(cancellationToken, useCdn).NoSync();
         await _styleInitializer.Init(cancellationToken, useCdn).NoSync();
         await _scriptInitializer.Init(cancellationToken, useCdn).NoSync();
+        await _interopInitializer.Init(cancellationToken).NoSync();
 
         string? json = null;
 

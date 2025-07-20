@@ -2,7 +2,7 @@ namespace Soenneker.Blazor.Drawflow.Utils;
 
 internal static class DrawflowUtil
 {
-    public static (string? uri, string? integrity) GetUriAndIntegrityForStyle(bool useCdn = true,
+    public static (string uri, string? integrity) GetUriAndIntegrityForStyle(bool useCdn = true,
         string localBasePath = "_content/Soenneker.Blazor.Drawflow/css/")
     {
         return useCdn
@@ -10,7 +10,7 @@ internal static class DrawflowUtil
             : ($"{localBasePath}drawflow.min.css", null);
     }
 
-    public static (string? uri, string? integrity) GetUriAndIntegrityForScript(bool useCdn = true,
+    public static (string uri, string? integrity) GetUriAndIntegrityForScript(bool useCdn = true,
         string localBasePath = "_content/Soenneker.Blazor.Drawflow/js/")
     {
         return useCdn
