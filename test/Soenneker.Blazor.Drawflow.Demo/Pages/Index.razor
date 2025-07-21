@@ -575,13 +575,13 @@
             await _flow.AddNode("email", 1, 0, 500, 100, "email", new { name = "Email", icon = "📧" }, "<div class='node-content'><span class='node-title'>Email</span></div>");
 
             // Retrieve actual node IDs by name
-            var githubIds = await _flow.GetNodesFromName("github");
-            var slackIds = await _flow.GetNodesFromName("slack");
-            var emailIds = await _flow.GetNodesFromName("email");
+            List<string> githubIds = await _flow.GetNodesFromName("github");
+            List<string> slackIds = await _flow.GetNodesFromName("slack");
+            List<string> emailIds = await _flow.GetNodesFromName("email");
 
-            string githubId = githubIds.FirstOrDefault();
-            string slackId = slackIds.FirstOrDefault();
-            string emailId = emailIds.FirstOrDefault();
+            string? githubId = githubIds.FirstOrDefault();
+            string? slackId = slackIds.FirstOrDefault();
+            string? emailId = emailIds.FirstOrDefault();
 
             // Add connections using actual node IDs and correct port names
             if (!string.IsNullOrEmpty(githubId) && !string.IsNullOrEmpty(slackId))

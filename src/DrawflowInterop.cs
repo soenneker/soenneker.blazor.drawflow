@@ -52,7 +52,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
             if (obj.Length > 0)
                 useCdn = (bool)obj[0];
 
-            (string? uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
+            (string uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
 
             await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token).NoSync();
             return new object();
@@ -132,11 +132,9 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
     public async ValueTask Import(string elementId, DrawflowExport drawflowExport, CancellationToken cancellationToken = default)
     {
-        string json = JsonUtil.Serialize(drawflowExport);
+        string? json = JsonUtil.Serialize(drawflowExport);
         await JsRuntime.InvokeVoidAsync($"{_interopName}.import", cancellationToken, elementId, json).NoSync();
     }
-
-
 
     public ValueTask Destroy(string elementId, CancellationToken cancellationToken = default)
     {
@@ -180,7 +178,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
         // Then add all nodes in the module
         if (module.Data != null)
         {
-            foreach (var node in module.Data.Values)
+            foreach (DrawflowNode node in module.Data.Values)
             {
                 await AddNode(elementId, node, cancellationToken).NoSync();
             }
@@ -199,7 +197,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
     public async ValueTask<DrawflowNode?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        var json = await JsRuntime.InvokeAsync<string>($"{_interopName}.getNodeFromId", cancellationToken, elementId, id).NoSync();
+        string json = await JsRuntime.InvokeAsync<string>($"{_interopName}.getNodeFromId", cancellationToken, elementId, id).NoSync();
         if (string.IsNullOrWhiteSpace(json))
             return null;
         return JsonUtil.Deserialize<DrawflowNode>(json);
