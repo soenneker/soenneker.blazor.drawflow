@@ -4,6 +4,7 @@
 @using Soenneker.Blazor.Drawflow
 @using System.Text.Json
 @using Soenneker.Blazor.Drawflow.Dtos
+@using Soenneker.Extensions.Enumerable
 @inject ILogger<Index> Logger
 
 <Layout>
@@ -114,14 +115,14 @@
                             }
                         </div>
                     </div>
-                    @if (!string.IsNullOrEmpty(_exportedData))
+                    @if (!_exportedData.IsNullOrEmpty())
                     {
                         <div class="info-section mb-4">
                             <h3 class="text-info">Exported Data</h3>
                             <textarea ReadOnly Class="export-data">@_exportedData</textarea>
                         </div>
                     }
-                    @if (!string.IsNullOrEmpty(_currentDrawflowJson))
+                    @if (!_currentDrawflowJson.IsNullOrEmpty())
                     {
                         <div class="info-section mb-4">
                             <h3 class="text-info">Current Drawflow JSON</h3>
@@ -477,7 +478,7 @@
 
     private async Task ImportData()
     {
-        if (_flow != null && !string.IsNullOrEmpty(_exportedData))
+        if (_flow != null && !_exportedData.IsNullOrEmpty())
         {
             await _flow.Import(_exportedData);
             AddLog("Data imported successfully", "success");
@@ -584,9 +585,9 @@
             string? emailId = emailIds.FirstOrDefault();
 
             // Add connections using actual node IDs and correct port names
-            if (!string.IsNullOrEmpty(githubId) && !string.IsNullOrEmpty(slackId))
+            if (!githubId.IsNullOrEmpty() && !slackId.IsNullOrEmpty())
                 await _flow.AddConnection(githubId, slackId, "output_1", "input_1");
-            if (!string.IsNullOrEmpty(slackId) && !string.IsNullOrEmpty(emailId))
+            if (!slackId.IsNullOrEmpty() && !emailId.IsNullOrEmpty())
                 await _flow.AddConnection(slackId, emailId, "output_1", "input_1");
 
             AddLog("Created sample workflow", "success");

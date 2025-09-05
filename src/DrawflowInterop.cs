@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Blazor.Drawflow.Dtos;
+using Soenneker.Extensions.Enumerable;
 
 namespace Soenneker.Blazor.Drawflow;
 
@@ -95,7 +96,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
     public async ValueTask AddNode(string elementId, DrawflowNode node, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(node.Name))
+        if (node.Name.IsNullOrEmpty())
             throw new ArgumentException("Node name cannot be null or empty", nameof(node));
 
         int inputs = node.Inputs?.Count ?? 0;
@@ -169,7 +170,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
     public async ValueTask AddModule(string elementId, string moduleName, DrawflowModule module, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(moduleName))
+        if (moduleName.IsNullOrEmpty())
             throw new ArgumentException("Module name cannot be null or empty", nameof(moduleName));
 
         // First add the module
