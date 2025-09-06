@@ -42,7 +42,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
             (string uri, string? integrity) style = DrawflowUtil.GetUriAndIntegrityForStyle(useCdn);
 
-            await _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token).NoSync();
+            await _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token);
             return new object();
         });
 
@@ -55,38 +55,38 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
             (string uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
 
-            await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token).NoSync();
+            await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token);
             return new object();
         });
 
         _interopInitializer = new AsyncSingleton(async (token, _) =>
         {
-            await resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token).NoSync();
+            await resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token);
             return new object();
         });
     }
 
     public async ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
     {
-        await _styleInitializer.Init(cancellationToken, useCdn).NoSync();
-        await _scriptInitializer.Init(cancellationToken, useCdn).NoSync();
-        await _interopInitializer.Init(cancellationToken).NoSync();
+        await _styleInitializer.Init(cancellationToken, useCdn);
+        await _scriptInitializer.Init(cancellationToken, useCdn);
+        await _interopInitializer.Init(cancellationToken);
     }
 
     public async ValueTask Create(string elementId, DrawflowOptions? options = null, CancellationToken cancellationToken = default)
     {
         bool useCdn = options?.UseCdn ?? true;
 
-        await _styleInitializer.Init(cancellationToken, useCdn).NoSync();
-        await _scriptInitializer.Init(cancellationToken, useCdn).NoSync();
-        await _interopInitializer.Init(cancellationToken).NoSync();
+        await _styleInitializer.Init(cancellationToken, useCdn);
+        await _scriptInitializer.Init(cancellationToken, useCdn);
+        await _interopInitializer.Init(cancellationToken);
 
         string? json = null;
 
         if (options != null)
             json = JsonUtil.Serialize(options);
 
-        await JsRuntime.InvokeVoidAsync($"{_interopName}.create", cancellationToken, elementId, json).NoSync();
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.create", cancellationToken, elementId, json);
     }
 
     public ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default)
@@ -102,7 +102,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
         int inputs = node.Inputs?.Count ?? 0;
         int outputs = node.Outputs?.Count ?? 0;
 
-        await JsRuntime.InvokeVoidAsync($"{_interopName}.addNode", cancellationToken, elementId, node.Name, inputs, outputs, node.PosX, node.PosY, node.Class ?? "", node.Data, node.Html ?? "").NoSync();
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.addNode", cancellationToken, elementId, node.Name, inputs, outputs, node.PosX, node.PosY, node.Class ?? "", node.Data, node.Html ?? "");
     }
 
     public ValueTask RemoveNode(string elementId, string nodeId, CancellationToken cancellationToken = default)
@@ -122,7 +122,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
     public async ValueTask<DrawflowExport> Export(string elementId, CancellationToken cancellationToken = default)
     {
-        string json = await JsRuntime.InvokeAsync<string>($"{_interopName}.export", cancellationToken, elementId).NoSync();
+        string json = await JsRuntime.InvokeAsync<string>($"{_interopName}.export", cancellationToken, elementId);
         return JsonUtil.Deserialize<DrawflowExport>(json) ?? new DrawflowExport();
     }
 
@@ -134,7 +134,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     public async ValueTask Import(string elementId, DrawflowExport drawflowExport, CancellationToken cancellationToken = default)
     {
         string? json = JsonUtil.Serialize(drawflowExport);
-        await JsRuntime.InvokeVoidAsync($"{_interopName}.import", cancellationToken, elementId, json).NoSync();
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.import", cancellationToken, elementId, json);
     }
 
     public ValueTask Destroy(string elementId, CancellationToken cancellationToken = default)
@@ -174,14 +174,14 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
             throw new ArgumentException("Module name cannot be null or empty", nameof(moduleName));
 
         // First add the module
-        await JsRuntime.InvokeVoidAsync($"{_interopName}.addModule", cancellationToken, elementId, moduleName).NoSync();
+        await JsRuntime.InvokeVoidAsync($"{_interopName}.addModule", cancellationToken, elementId, moduleName);
 
         // Then add all nodes in the module
         if (module.Data != null)
         {
             foreach (DrawflowNode node in module.Data.Values)
             {
-                await AddNode(elementId, node, cancellationToken).NoSync();
+                await AddNode(elementId, node, cancellationToken);
             }
         }
     }
@@ -198,7 +198,7 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
     public async ValueTask<DrawflowNode?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        string json = await JsRuntime.InvokeAsync<string>($"{_interopName}.getNodeFromId", cancellationToken, elementId, id).NoSync();
+        string json = await JsRuntime.InvokeAsync<string>($"{_interopName}.getNodeFromId", cancellationToken, elementId, id);
         if (string.IsNullOrWhiteSpace(json))
             return null;
         return JsonUtil.Deserialize<DrawflowNode>(json);
@@ -371,10 +371,10 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 
     public async ValueTask DisposeAsync()
     {
-        await _resourceLoader.DisposeModule(_module).NoSync();
-        await _interopInitializer.DisposeAsync().NoSync();
-        await _styleInitializer.DisposeAsync().NoSync();
-        await _scriptInitializer.DisposeAsync().NoSync();
+        await _resourceLoader.DisposeModule(_module);
+        await _interopInitializer.DisposeAsync();
+        await _styleInitializer.DisposeAsync();
+        await _scriptInitializer.DisposeAsync();
     }
 
     private sealed class CallbackInvoker

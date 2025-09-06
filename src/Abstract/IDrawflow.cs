@@ -1,4 +1,4 @@
-﻿using Soenneker.Blazor.Drawflow.Options;
+using Soenneker.Blazor.Drawflow.Options;
 using System;
 using System.Collections.Generic;
 using System.Threading;

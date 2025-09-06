@@ -115,7 +115,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await DrawflowInterop.Initialize(Options?.UseCdn ?? true, CancellationToken).NoSync();
+        await DrawflowInterop.Initialize(Options?.UseCdn ?? true, CancellationToken);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -127,8 +127,8 @@
                 return;
             }
 
-            await Create(cancellationToken: CancellationToken).NoSync();
-            await DrawflowInterop.CreateObserver(_observerId, CancellationToken).NoSync();
+            await Create(cancellationToken: CancellationToken);
+            await DrawflowInterop.CreateObserver(_observerId, CancellationToken);
         }
     }
 
@@ -151,9 +151,9 @@
 
         using (cts)
         {
-            await DrawflowInterop.Create(_elementId, Options, linked).NoSync();
+            await DrawflowInterop.Create(_elementId, Options, linked);
 
-            await AddEventListeners(linked).NoSync();
+            await AddEventListeners(linked);
         }
 
         _initialized = true;
@@ -163,55 +163,55 @@
     private async ValueTask AddEventListeners(CancellationToken cancellationToken)
     {
         if (OnNodeCreated.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "nodeCreated", OnNodeCreated, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "nodeCreated", OnNodeCreated, cancellationToken);
 
         if (OnNodeRemoved.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "nodeRemoved", OnNodeRemoved, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "nodeRemoved", OnNodeRemoved, cancellationToken);
 
         if (OnConnectionCreated.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "connectionCreated", OnConnectionCreated, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "connectionCreated", OnConnectionCreated, cancellationToken);
 
         if (OnConnectionRemoved.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "connectionRemoved", OnConnectionRemoved, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "connectionRemoved", OnConnectionRemoved, cancellationToken);
 
         if (OnModuleChanged.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "moduleChanged", OnModuleChanged, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "moduleChanged", OnModuleChanged, cancellationToken);
 
         if (OnModuleAdded.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "moduleAdded", OnModuleAdded, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "moduleAdded", OnModuleAdded, cancellationToken);
 
         if (OnModuleRemoved.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "moduleRemoved", OnModuleRemoved, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "moduleRemoved", OnModuleRemoved, cancellationToken);
 
         if (OnNodeSelected.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "nodeSelected", WrapListStringCallback(OnNodeSelected), cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "nodeSelected", WrapListStringCallback(OnNodeSelected), cancellationToken);
 
         if (OnNodeUnselected.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "nodeUnselected", WrapListStringCallback(OnNodeUnselected), cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "nodeUnselected", WrapListStringCallback(OnNodeUnselected), cancellationToken);
 
         if (OnConnectionSelected.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "connectionSelected", OnConnectionSelected, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "connectionSelected", OnConnectionSelected, cancellationToken);
 
         if (OnConnectionUnselected.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "connectionUnselected", OnConnectionUnselected, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "connectionUnselected", OnConnectionUnselected, cancellationToken);
 
         if (OnDataChanged.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "dataChanged", OnDataChanged, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "dataChanged", OnDataChanged, cancellationToken);
 
         if (OnZoomChanged.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "zoomChanged", OnZoomChanged, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "zoomChanged", OnZoomChanged, cancellationToken);
 
         if (OnReroute.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "reroute", OnReroute, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "reroute", OnReroute, cancellationToken);
 
         if (OnTranslated.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "translated", OnTranslated, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "translated", OnTranslated, cancellationToken);
 
         if (OnImport.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "import", OnImport, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "import", OnImport, cancellationToken);
 
         if (OnExport.HasDelegate)
-            await DrawflowInterop.AddEventListener(_elementId, "export", OnExport, cancellationToken).NoSync();
+            await DrawflowInterop.AddEventListener(_elementId, "export", OnExport, cancellationToken);
     }
 
     private static List<string> ParseIdList(string json)
@@ -277,7 +277,7 @@
             if (data is not null && data is not string)
                 dataToSend = JsonUtil.Serialize(data);
 
-            await DrawflowInterop.AddNode(_elementId, name, inputs, outputs, posX, posY, className, dataToSend, html, linked).NoSync();
+            await DrawflowInterop.AddNode(_elementId, name, inputs, outputs, posX, posY, className, dataToSend, html, linked);
         }
     }
 
@@ -290,7 +290,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.AddNode(_elementId, node, linked).NoSync();
+            await DrawflowInterop.AddNode(_elementId, node, linked);
         }
     }
 
@@ -303,7 +303,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.AddConnection(_elementId, outputNode, inputNode, outputClass, inputClass, linked).NoSync();
+            await DrawflowInterop.AddConnection(_elementId, outputNode, inputNode, outputClass, inputClass, linked);
         }
     }
 
@@ -316,7 +316,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.RemoveNode(_elementId, nodeId, linked).NoSync();
+            await DrawflowInterop.RemoveNode(_elementId, nodeId, linked);
         }
     }
 
@@ -329,7 +329,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.RemoveConnectionNodeId(_elementId, nodeId, linked).NoSync();
+            await DrawflowInterop.RemoveConnectionNodeId(_elementId, nodeId, linked);
         }
     }
 
@@ -341,7 +341,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetNodeFromId(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.GetNodeFromId(_elementId, id, linked);
     }
 
     public async ValueTask<List<string>> GetNodesFromName(string name, CancellationToken cancellationToken = default)
@@ -352,7 +352,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetNodesFromName(_elementId, name, linked).NoSync();
+            return await DrawflowInterop.GetNodesFromName(_elementId, name, linked);
     }
 
     public async ValueTask UpdateNodeData(string id, object data, CancellationToken cancellationToken = default)
@@ -364,7 +364,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.UpdateNodeData(_elementId, id, data, linked).NoSync();
+            await DrawflowInterop.UpdateNodeData(_elementId, id, data, linked);
         }
     }
 
@@ -377,7 +377,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.UpdateConnectionNodes(_elementId, id, linked).NoSync();
+            await DrawflowInterop.UpdateConnectionNodes(_elementId, id, linked);
         }
     }
 
@@ -389,7 +389,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetModuleFromNodeId(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.GetModuleFromNodeId(_elementId, id, linked);
     }
 
     public async ValueTask ClearModuleSelected(CancellationToken cancellationToken = default)
@@ -401,7 +401,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.ClearModuleSelected(_elementId, linked).NoSync();
+            await DrawflowInterop.ClearModuleSelected(_elementId, linked);
         }
     }
 
@@ -413,7 +413,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.ExportAsJson(_elementId, linked).NoSync();
+            return await DrawflowInterop.ExportAsJson(_elementId, linked);
     }
 
     public async ValueTask<DrawflowExport> Export(CancellationToken cancellationToken = default)
@@ -424,7 +424,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.Export(_elementId, linked).NoSync();
+            return await DrawflowInterop.Export(_elementId, linked);
     }
 
     public async ValueTask Import(string json, CancellationToken cancellationToken = default)
@@ -436,7 +436,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.Import(_elementId, json, linked).NoSync();
+            await DrawflowInterop.Import(_elementId, json, linked);
         }
     }
 
@@ -449,7 +449,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.Import(_elementId, drawflowExport, linked).NoSync();
+            await DrawflowInterop.Import(_elementId, drawflowExport, linked);
         }
     }
 
@@ -462,7 +462,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.ZoomIn(_elementId, linked).NoSync();
+            await DrawflowInterop.ZoomIn(_elementId, linked);
         }
     }
 
@@ -475,7 +475,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.ZoomOut(_elementId, linked).NoSync();
+            await DrawflowInterop.ZoomOut(_elementId, linked);
         }
     }
 
@@ -488,7 +488,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.AddModule(_elementId, name, linked).NoSync();
+            await DrawflowInterop.AddModule(_elementId, name, linked);
         }
     }
 
@@ -501,7 +501,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.AddModule(_elementId, moduleName, module, linked).NoSync();
+            await DrawflowInterop.AddModule(_elementId, moduleName, module, linked);
         }
     }
 
@@ -514,7 +514,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.ChangeModule(_elementId, name, linked).NoSync();
+            await DrawflowInterop.ChangeModule(_elementId, name, linked);
         }
     }
 
@@ -527,7 +527,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.RemoveModule(_elementId, name, linked).NoSync();
+            await DrawflowInterop.RemoveModule(_elementId, name, linked);
         }
     }
 
@@ -540,7 +540,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.AddNodeInput(_elementId, id, linked).NoSync();
+            await DrawflowInterop.AddNodeInput(_elementId, id, linked);
         }
     }
 
@@ -553,7 +553,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.AddNodeOutput(_elementId, id, linked).NoSync();
+            await DrawflowInterop.AddNodeOutput(_elementId, id, linked);
         }
     }
 
@@ -566,7 +566,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.RemoveNodeInput(_elementId, id, inputClass, linked).NoSync();
+            await DrawflowInterop.RemoveNodeInput(_elementId, id, inputClass, linked);
         }
     }
 
@@ -579,7 +579,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.RemoveNodeOutput(_elementId, id, outputClass, linked).NoSync();
+            await DrawflowInterop.RemoveNodeOutput(_elementId, id, outputClass, linked);
         }
     }
 
@@ -592,7 +592,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.RemoveSingleConnection(_elementId, outId, inId, outClass, inClass, linked).NoSync();
+            await DrawflowInterop.RemoveSingleConnection(_elementId, outId, inId, outClass, inClass, linked);
         }
     }
 
@@ -605,7 +605,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.Clear(_elementId, linked).NoSync();
+            await DrawflowInterop.Clear(_elementId, linked);
         }
     }
 
@@ -618,7 +618,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.SetZoom(_elementId, zoom, linked).NoSync();
+            await DrawflowInterop.SetZoom(_elementId, zoom, linked);
         }
     }
 
@@ -630,7 +630,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetZoom(_elementId, linked).NoSync();
+            return await DrawflowInterop.GetZoom(_elementId, linked);
     }
 
     public async ValueTask CenterNode(string id, CancellationToken cancellationToken = default)
@@ -642,7 +642,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.CenterNode(_elementId, id, linked).NoSync();
+            await DrawflowInterop.CenterNode(_elementId, id, linked);
         }
     }
 
@@ -654,7 +654,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetNodePosition(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.GetNodePosition(_elementId, id, linked);
     }
 
     public async ValueTask SetNodePosition(string id, int posX, int posY, CancellationToken cancellationToken = default)
@@ -666,7 +666,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.SetNodePosition(_elementId, id, posX, posY, linked).NoSync();
+            await DrawflowInterop.SetNodePosition(_elementId, id, posX, posY, linked);
         }
     }
 
@@ -678,7 +678,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetNodeHtml(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.GetNodeHtml(_elementId, id, linked);
     }
 
     public async ValueTask SetNodeHtml(string id, string html, CancellationToken cancellationToken = default)
@@ -690,7 +690,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.SetNodeHtml(_elementId, id, html, linked).NoSync();
+            await DrawflowInterop.SetNodeHtml(_elementId, id, html, linked);
         }
     }
 
@@ -702,7 +702,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetNodeClass(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.GetNodeClass(_elementId, id, linked);
     }
 
     public async ValueTask SetNodeClass(string id, string className, CancellationToken cancellationToken = default)
@@ -714,7 +714,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.SetNodeClass(_elementId, id, className, linked).NoSync();
+            await DrawflowInterop.SetNodeClass(_elementId, id, className, linked);
         }
     }
 
@@ -726,7 +726,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetNodeName(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.GetNodeName(_elementId, id, linked);
     }
 
     public async ValueTask SetNodeName(string id, string name, CancellationToken cancellationToken = default)
@@ -738,7 +738,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.SetNodeName(_elementId, id, name, linked).NoSync();
+            await DrawflowInterop.SetNodeName(_elementId, id, name, linked);
         }
     }
 
@@ -750,7 +750,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetNodeConnections(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.GetNodeConnections(_elementId, id, linked);
     }
 
     public async ValueTask<bool> IsNodeSelected(string id, CancellationToken cancellationToken = default)
@@ -761,7 +761,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.IsNodeSelected(_elementId, id, linked).NoSync();
+            return await DrawflowInterop.IsNodeSelected(_elementId, id, linked);
     }
 
     public async ValueTask SelectNode(string id, CancellationToken cancellationToken = default)
@@ -773,7 +773,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.SelectNode(_elementId, id, linked).NoSync();
+            await DrawflowInterop.SelectNode(_elementId, id, linked);
         }
     }
 
@@ -786,7 +786,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.UnselectNode(_elementId, id, linked).NoSync();
+            await DrawflowInterop.UnselectNode(_elementId, id, linked);
         }
     }
 
@@ -798,7 +798,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetSelectedNodes(_elementId, linked).NoSync();
+            return await DrawflowInterop.GetSelectedNodes(_elementId, linked);
     }
 
     public async ValueTask ClearSelectedNodes(CancellationToken cancellationToken = default)
@@ -810,7 +810,7 @@
 
         using (cts)
         {
-            await DrawflowInterop.ClearSelectedNodes(_elementId, linked).NoSync();
+            await DrawflowInterop.ClearSelectedNodes(_elementId, linked);
         }
     }
 
@@ -822,7 +822,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetCurrentModule(_elementId, linked).NoSync();
+            return await DrawflowInterop.GetCurrentModule(_elementId, linked);
     }
 
     public async ValueTask<List<string>> GetModules(CancellationToken cancellationToken = default)
@@ -833,7 +833,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.GetModules(_elementId, linked).NoSync();
+            return await DrawflowInterop.GetModules(_elementId, linked);
     }
 
     public async ValueTask<bool> IsEditMode(CancellationToken cancellationToken = default)
@@ -844,7 +844,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await DrawflowInterop.IsEditMode(_elementId, linked).NoSync();
+            return await DrawflowInterop.IsEditMode(_elementId, linked);
     }
 
     public async ValueTask SetEditMode(bool editMode, CancellationToken cancellationToken = default)
@@ -856,19 +856,19 @@
 
         using (cts)
         {
-            await DrawflowInterop.SetEditMode(_elementId, editMode, linked).NoSync();
+            await DrawflowInterop.SetEditMode(_elementId, editMode, linked);
         }
     }
 
     public override async ValueTask DisposeAsync()
     {
-        await base.DisposeAsync().NoSync();
+        await base.DisposeAsync();
 
         try
         {
             if (_initialized)
             {
-                await DrawflowInterop.Destroy(_elementId, CancellationToken).NoSync();
+                await DrawflowInterop.Destroy(_elementId, CancellationToken);
             }
         }
         catch (Exception ex)

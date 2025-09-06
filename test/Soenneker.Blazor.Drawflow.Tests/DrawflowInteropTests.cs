@@ -1,4 +1,4 @@
-﻿using Soenneker.Blazor.Drawflow.Abstract;
+using Soenneker.Blazor.Drawflow.Abstract;
 using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
