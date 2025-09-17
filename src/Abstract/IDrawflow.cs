@@ -1,16 +1,16 @@
 using Soenneker.Blazor.Drawflow.Options;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Blazor.Drawflow.Dtos;
+using Soenneker.Quark.Components.Cancellable.Abstract;
 
 namespace Soenneker.Blazor.Drawflow.Abstract;
 
 /// <summary>
 /// Interface for the Drawflow Blazor component
 /// </summary>
-public interface IDrawflow : IAsyncDisposable
+public interface IDrawflow : ICancellableComponent
 {
     /// <summary>
     /// Create a new drawflow instance

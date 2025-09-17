@@ -4,7 +4,6 @@
 @using Soenneker.Blazor.Drawflow.Abstract
 @using Soenneker.Blazor.Drawflow.Dtos
 @using Soenneker.Blazor.Drawflow.Options
-@using Soenneker.Extensions.ValueTask
 @using Soenneker.Extensions.String
 @using Soenneker.Utils.Json
 @using Soenneker.Extensions.CancellationTokens
@@ -27,10 +26,7 @@
     private readonly string _elementId;
 
 
-    private readonly List<EventLog> _eventLogs = new();
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public Dictionary<string, object>? Attributes { get; set; }
+    private readonly List<EventLog> _eventLogs = [];
 
     [Parameter]
     public DrawflowOptions? Options { get; set; }
@@ -98,7 +94,7 @@
 
     private void AddLog(string message, string type = "info")
     {
-        _eventLogs.Insert(0, new EventLog {Message = message, Type = type});
+        _eventLogs.Insert(0, new EventLog { Message = message, Type = type });
         if (_eventLogs.Count > 50)
             _eventLogs.RemoveAt(_eventLogs.Count - 1);
     }
@@ -107,7 +103,8 @@
     {
         _initializing = false;
         _initialized = false;
-        _elementGuid = Guid.NewGuid().ToString("N");
+        _elementGuid = Guid.NewGuid()
+            .ToString("N");
         _observerId = $"df-observer-{_elementGuid}";
         _wrapperId = $"df-wrapper-{_elementGuid}";
         _elementId = $"df-interop-{_elementGuid}";
@@ -122,7 +119,7 @@
     {
         if (firstRender)
         {
-            if (Options is {ManualCreate: true})
+            if (Options is { ManualCreate: true })
             {
                 return;
             }

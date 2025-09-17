@@ -5,7 +5,6 @@ using Soenneker.Blazor.Drawflow.Options;
 using Soenneker.Blazor.Drawflow.Utils;
 using Soenneker.Blazor.Utils.EventListeningInterop;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
-using Soenneker.Extensions.ValueTask;
 using Soenneker.Utils.AsyncSingleton;
 using Soenneker.Utils.Json;
 using System;
