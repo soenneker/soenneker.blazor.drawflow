@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Blazor.Drawflow.Dtos;
-using Soenneker.Quark.Components.Cancellable.Abstract;
+using Soenneker.Quark.Components.Core.Cancellable.Abstract;
 
 namespace Soenneker.Blazor.Drawflow.Abstract;
 
 /// <summary>
 /// Interface for the Drawflow Blazor component
 /// </summary>
-public interface IDrawflow : ICancellableComponent
+public interface IDrawflow : ICoreCancellableComponent
 {
     /// <summary>
     /// Create a new drawflow instance

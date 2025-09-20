@@ -11,7 +11,7 @@
 @inject IDrawflowInterop DrawflowInterop
 @inject ILogger<Drawflow> Logger
 
-@inherits Soenneker.Quark.Components.Cancellable.CancellableComponent
+@inherits Soenneker.Quark.Components.Core.Cancellable.CoreCancellableComponent
 @implements IDrawflow
 
 <div id="@_observerId" ></div>
@@ -24,7 +24,6 @@
     private readonly string _observerId;
     private readonly string _wrapperId;
     private readonly string _elementId;
-
 
     private readonly List<EventLog> _eventLogs = [];
 
@@ -85,16 +84,10 @@
     private bool _initializing;
     private bool _initialized;
 
-    private class EventLog
-    {
-        public DateTime Timestamp { get; set; } = DateTime.Now;
-        public string Message { get; set; } = "";
-        public string Type { get; set; } = "info";
-    }
-
     private void AddLog(string message, string type = "info")
     {
         _eventLogs.Insert(0, new EventLog { Message = message, Type = type });
+
         if (_eventLogs.Count > 50)
             _eventLogs.RemoveAt(_eventLogs.Count - 1);
     }
