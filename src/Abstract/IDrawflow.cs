@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Blazor.Drawflow.Dtos;
-using Soenneker.Quark.Components.Core.Cancellable.Abstract;
+using Soenneker.Quark;
 
 namespace Soenneker.Blazor.Drawflow.Abstract;
 
