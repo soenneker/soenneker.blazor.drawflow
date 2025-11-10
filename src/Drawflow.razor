@@ -83,6 +83,7 @@
 
     private bool _initializing;
     private bool _initialized;
+    private bool _interopInitialized;
 
     private void AddLog(string message, string type = "info")
     {
@@ -103,23 +104,26 @@
         _elementId = $"df-interop-{_elementGuid}";
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await DrawflowInterop.Initialize(Options?.UseCdn ?? true, CancellationToken);
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            if (Options is { ManualCreate: true })
-            {
-                return;
-            }
+        await base.OnAfterRenderAsync(firstRender);
 
-            await Create(cancellationToken: CancellationToken);
-            await DrawflowInterop.CreateObserver(_observerId, CancellationToken);
+        if (!firstRender && _initialized)
+            return;
+
+        if (!_interopInitialized)
+        {
+            bool useCdn = Options?.UseCdn ?? true;
+
+            await DrawflowInterop.Initialize(useCdn, CancellationToken);
+            _interopInitialized = true;
         }
+
+        if (Options is { ManualCreate: true } || _initialized)
+            return;
+
+        await Create(cancellationToken: CancellationToken);
+        await DrawflowInterop.CreateObserver(_observerId, CancellationToken);
     }
 
     public async ValueTask Create(DrawflowOptions? options = null, CancellationToken cancellationToken = default)
@@ -132,22 +136,32 @@
 
         _initializing = true;
 
+        if (!_interopInitialized)
+            throw new InvalidOperationException("Drawflow interop is not yet available. Wait until the component has rendered.");
+
         if (options != null)
             Options = options;
 
         //InteropEventListener.Initialize(DrawflowInterop);
 
-        CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
+        CancellationToken token = cancellationToken;
+        CancellationTokenSource? cts = null;
 
-        using (cts)
+        if (!token.CanBeCanceled)
+            token = CancellationToken.Link(CancellationToken, out cts);
+
+        try
         {
-            await DrawflowInterop.Create(_elementId, Options, linked);
+            await DrawflowInterop.Create(_elementId, Options, token);
+            await AddEventListeners(token);
 
-            await AddEventListeners(linked);
+            _initialized = true;
         }
-
-        _initialized = true;
-        _initializing = false;
+        finally
+        {
+            _initializing = false;
+            cts?.Dispose();
+        }
     }
 
     private async ValueTask AddEventListeners(CancellationToken cancellationToken)
