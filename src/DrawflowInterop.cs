@@ -5,7 +5,7 @@ using Soenneker.Blazor.Drawflow.Options;
 using Soenneker.Blazor.Drawflow.Utils;
 using Soenneker.Blazor.Utils.EventListeningInterop;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
-using Soenneker.Utils.AsyncSingleton;
+using Soenneker.Asyncs.Initializers;
 using Soenneker.Utils.Json;
 using System;
 using System.Collections.Generic;
@@ -21,9 +21,9 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
 {
     private readonly IResourceLoader _resourceLoader;
 
-    private readonly AsyncSingleton _interopInitializer;
-    private readonly AsyncSingleton _styleInitializer;
-    private readonly AsyncSingleton _scriptInitializer;
+    private readonly AsyncInitializer _interopInitializer;
+    private readonly AsyncInitializer<bool> _styleInitializer;
+    private readonly AsyncInitializer<bool> _scriptInitializer;
 
     private const string _module = "Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
     private const string _interopName = "DrawflowInterop";
@@ -32,43 +32,30 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     {
         _resourceLoader = resourceLoader;
 
-        _styleInitializer = new AsyncSingleton(async (token, obj) =>
+        _styleInitializer = new AsyncInitializer<bool>(async (useCdn, token) =>
         {
-            var useCdn = true;
-
-            if (obj.Length > 0)
-                useCdn = (bool)obj[0];
-
             (string uri, string? integrity) style = DrawflowUtil.GetUriAndIntegrityForStyle(useCdn);
 
             await _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token);
-            return new object();
         });
 
-        _scriptInitializer = new AsyncSingleton(async (token, obj) =>
+        _scriptInitializer = new AsyncInitializer<bool>(async (useCdn, token) =>
         {
-            var useCdn = true;
-
-            if (obj.Length > 0)
-                useCdn = (bool)obj[0];
-
             (string uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
 
             await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token);
-            return new object();
         });
 
-        _interopInitializer = new AsyncSingleton(async (token, _) =>
+        _interopInitializer = new AsyncInitializer(async token =>
         {
             await resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token);
-            return new object();
         });
     }
 
     public async ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
     {
-        await _styleInitializer.Init(cancellationToken, useCdn);
-        await _scriptInitializer.Init(cancellationToken, useCdn);
+        await _styleInitializer.Init(useCdn, cancellationToken);
+        await _scriptInitializer.Init(useCdn, cancellationToken);
         await _interopInitializer.Init(cancellationToken);
     }
 
@@ -76,8 +63,8 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     {
         bool useCdn = options?.UseCdn ?? true;
 
-        await _styleInitializer.Init(cancellationToken, useCdn);
-        await _scriptInitializer.Init(cancellationToken, useCdn);
+        await _styleInitializer.Init(useCdn, cancellationToken);
+        await _scriptInitializer.Init(useCdn, cancellationToken);
         await _interopInitializer.Init(cancellationToken);
 
         string? json = null;
