@@ -36,21 +36,21 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
         _interopInitializer = new AsyncInitializer(InitializeInterop);
     }
 
-    private async ValueTask InitializeStyle(bool useCdn, CancellationToken token)
+    private ValueTask InitializeStyle(bool useCdn, CancellationToken token)
     {
         (string uri, string? integrity) style = DrawflowUtil.GetUriAndIntegrityForStyle(useCdn);
-        await _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token);
+        return _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token);
     }
 
-    private async ValueTask InitializeScript(bool useCdn, CancellationToken token)
+    private ValueTask InitializeScript(bool useCdn, CancellationToken token)
     {
         (string uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
-        await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token);
+        return _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token);
     }
 
-    private async ValueTask InitializeInterop(CancellationToken token)
+    private ValueTask InitializeInterop(CancellationToken token)
     {
-        await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token);
+        return _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token);
     }
 
     public async ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
