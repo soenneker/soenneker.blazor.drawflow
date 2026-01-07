@@ -26,7 +26,6 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     private readonly AsyncInitializer<bool> _scriptInitializer;
 
     private const string _module = "Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
-    private const string _interopName = "DrawflowInterop";
 
     public DrawflowInterop(IJSRuntime jSRuntime, IResourceLoader resourceLoader) : base(jSRuntime)
     {
