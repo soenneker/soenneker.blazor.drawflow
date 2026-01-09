@@ -26,6 +26,8 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     private readonly AsyncInitializer<bool> _scriptInitializer;
 
     private const string _module = "Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
+    private const string _drawflowVariable = "Drawflow";
+    private const string _drawflowInterop = "DrawflowInterop";
 
     public DrawflowInterop(IJSRuntime jSRuntime, IResourceLoader resourceLoader) : base(jSRuntime)
     {
@@ -44,12 +46,12 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
     private ValueTask InitializeScript(bool useCdn, CancellationToken token)
     {
         (string uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
-        return _resourceLoader.LoadScriptAndWaitForVariable(script.uri, "Drawflow", script.integrity, cancellationToken: token);
+        return _resourceLoader.LoadScriptAndWaitForVariable(script.uri, _drawflowVariable, script.integrity, cancellationToken: token);
     }
 
     private ValueTask InitializeInterop(CancellationToken token)
     {
-        return _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, nameof(DrawflowInterop), 100, token);
+        return _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _drawflowInterop, 100, token);
     }
 
     public async ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
