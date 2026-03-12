@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
@@ -18,6 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Soenneker.Blazor.Drawflow.csproj" />
+        <ProjectReference Include="..\..\src\Soenneker.Blazor.Drawflow\Soenneker.Blazor.Drawflow.csproj" />
     </ItemGroup>
 </Project>
