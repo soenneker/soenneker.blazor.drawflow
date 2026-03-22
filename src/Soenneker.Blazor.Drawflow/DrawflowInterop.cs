@@ -53,9 +53,9 @@ public sealed class DrawflowInterop : EventListeningInterop, IDrawflowInterop
         return _resourceLoader.LoadScriptAndWaitForVariable(script.uri, _drawflowVariable, script.integrity, cancellationToken: token);
     }
 
-    private ValueTask InitializeInterop(CancellationToken token)
+    private async ValueTask InitializeInterop(CancellationToken token)
     {
-        return _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _drawflowInterop, 100, token);
+        _ = await _resourceLoader.ImportModule(_module, token);
     }
 
     public async ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
