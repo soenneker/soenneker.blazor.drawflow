@@ -1,3 +1,4 @@
+using Soenneker.Quark;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ public sealed class Program
             });
 
             builder.Services.AddDrawflowInteropAsScoped();
+            builder.Services.AddQuarkSuiteAsScoped();
 
             WebAssemblyHost host = builder.Build();
 
@@ -74,3 +76,5 @@ public sealed class Program
         Log.Logger = loggerConfig.CreateLogger();
     }
 }
+
+
