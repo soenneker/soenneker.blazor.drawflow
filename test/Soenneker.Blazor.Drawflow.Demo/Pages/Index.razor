@@ -7,139 +7,140 @@
 @using Soenneker.Extensions.Enumerable
 @inject ILogger<Index> Logger
 
-<Layout>
-    <Bar Background="Background.Dark" ThemeContrast="ThemeContrast.Dark" Class="shadow-sm px-4" Style="height:64px;">
-        <BarBrand>
-            <span class="fw-bold fs-4">Drawflow Blazor Demo</span>
-        </BarBrand>
-        <BarEnd>
-            <Link To="https://github.com/Soenneker/soenneker.blazor.drawflow" Target="Target.Blank" Title="View on GitHub" />
-        </BarEnd>
-    </Bar>
-    <LayoutContent>
-        <div class="d-flex flex-row" style="height:calc(100vh - 64px);">
-            <LayoutSider Class="bg-dark text-light p-4 d-flex flex-column gap-4" Style="min-width:200px;max-width:320px;">
-                <div class="toolbar">
-                    <div class="toolbar-section mb-4">
-                        <h3 class="text-info">Node Operations</h3>
-                        <div class="d-flex flex-column gap-2">
-                            <Button Color="Color.Info" Outline Class="mb-1" @onclick="AddGithubNode">GitHub Node</Button>
-                            <Button Color="Color.Info" Outline Class="mb-1" @onclick="AddEmailNode">Email Node</Button>
-                            <Button Color="Color.Primary" Outline Class="mb-1" @onclick="AddHtmlNode">Add HTML Node</Button>
-                            <Button Color="Color.Primary" Outline Class="mb-1" @onclick="AddNodeWithData">Add Node With Data</Button>
-                            <Button Color="Color.Primary" Outline Class="mb-1" @onclick="AddCustomStyledNode">Add Custom Styled Node</Button>
-                        </div>
-                    </div>
-                    <div class="toolbar-section mb-4">
-                        <h3 class="text-info">View Controls</h3>
-                        <div class="d-flex flex-row gap-2 flex-wrap">
-                            <Button Color="Color.Secondary" @onclick="ZoomIn">Zoom In</Button>
-                            <Button Color="Color.Secondary" @onclick="ZoomOut">Zoom Out</Button>
-                            <Button Color="Color.Danger" @onclick="ClearCanvas">Clear</Button>
-                        </div>
-                    </div>
-                    <div class="toolbar-section mb-4">
-                        <h3 class="text-info">Module Management</h3>
-                        <div class="d-flex flex-row gap-2 flex-wrap">
-                            <Button Color="Color.Warning" @onclick="AddModuleClick">Add Module</Button>
-                            <Button Color="Color.Warning" @onclick="ChangeModuleClick">Change Module</Button>
-                            <Button Color="Color.Warning" @onclick="RemoveModuleClick">Remove Module</Button>
-                        </div>
-                    </div>
-                    <div class="toolbar-section mb-4">
-                        <h3 class="text-info">Data Operations</h3>
-                        <div class="d-flex flex-row gap-2 flex-wrap">
-                            <Button Color="Color.Success" @onclick="ExportData">Export</Button>
-                            <Button Color="Color.Success" @onclick="ImportData">Import</Button>
-                            <Button Color="Color.Danger" @onclick="RemoveSelectedNode">Remove Selected</Button>
-                            <Button Color="Color.Info" @onclick="ShowCurrentDrawflow">Show Current Drawflow JSON</Button>
-                        </div>
-                    </div>
-                    <div class="toolbar-section mb-4">
-                        <h3 class="text-info">Advanced</h3>
-                        <div class="d-flex flex-row gap-2 flex-wrap">
-                            <Button Color="Color.Primary" @onclick="AddNodeInput">Add Input</Button>
-                            <Button Color="Color.Primary" @onclick="AddNodeOutput">Add Output</Button>
-                            <Button Color="Color.Primary" @onclick="UpdateSelectedNodeData">Update Data</Button>
-                            <Button Color="Color.Primary" @onclick="CreateSampleFlow">Sample Flow</Button>
-                            <Button Color="Color.Primary" @onclick="TestDrawflow">Test Drawflow</Button>
-                            <Button Color="Color.Primary" @onclick="AddTypedNode">Add Typed Node</Button>
-                            <Button Color="Color.Primary" @onclick="AddTypedModule">Add Typed Module</Button>
-                            <Button Color="Color.Primary" @onclick="ImportTypedData">Import Typed Data</Button>
-                            <Button Color="Color.Primary" @onclick="ImportJsonData">Import JSON Data</Button>
-                        </div>
-                    </div>
-                </div>
-            </LayoutSider>
-            <LayoutContent>
-                <div style="width:100%;height:100%;min-width:600px;min-height:400px;position:relative;">
-                    <Drawflow @ref="_flow"
-                             Options="_options"
-                             OnNodeCreated="HandleNodeCreated"
-                             OnNodeRemoved="HandleNodeRemoved"
-                             OnConnectionCreated="HandleConnectionCreated"
-                             OnConnectionRemoved="HandleConnectionRemoved"
-                             OnNodeSelected="HandleNodeSelected"
-                             OnNodeUnselected="HandleNodeUnselected"
-                             OnDataChanged="HandleDataChanged"
-                             OnZoomChanged="HandleZoomChanged"
-                             OnModuleChanged="HandleModuleChanged"
-                             OnModuleAdded="HandleModuleAdded"
-                             OnModuleRemoved="HandleModuleRemoved"
-                             OnImport="HandleImport"
-                             OnExport="HandleExport"
-                             Class="drawflow-editor w-100 h-100">
-                    </Drawflow>
-                </div>
-            </LayoutContent>
-            <LayoutSider  Class="bg-dark text-light p-4 d-flex flex-column gap-4" Style="min-width:200px;max-width:400px;overflow-x:auto;">
-                <div class="info-panel">
-                    <div class="info-section mb-4">
-                        <h3 class="text-info">Status</h3>
-                        <div class="status-info">
-                            <p><span>Nodes</span> <span class="badge bg-info">@_nodeCount</span></p>
-                            <p><span>Connections</span> <span class="badge bg-info">@_connectionCount</span></p>
-                            <p><span>Zoom</span> <span class="badge bg-info">@_currentZoom.ToString("F2")</span></p>
-                            <p><span>Module</span> <span class="badge bg-info">@_currentModule</span></p>
-                        </div>
-                    </div>
-                    <div class="info-section mb-4">
-                        <h3 class="text-info">Events</h3>
-                        <div class="event-log">
-                            @foreach (EventLog log in _eventLogs.Take(10))
-                            {
-                                <div class="log-entry">
-                                    <span class="log-time">@log.Timestamp.ToString("HH:mm:ss")</span>
-                                    <span class="log-message">@log.Message</span>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    @if (!_exportedData.IsNullOrEmpty())
-                    {
-                        <div class="info-section mb-4">
-                            <h3 class="text-info">Exported Data</h3>
-                            <textarea ReadOnly Class="export-data">@_exportedData</textarea>
-                        </div>
-                    }
-                    @if (!_currentDrawflowJson.IsNullOrEmpty())
-                    {
-                        <div class="info-section mb-4">
-                            <h3 class="text-info">Current Drawflow JSON</h3>
-                            <textarea ReadOnly Class="export-data">@_currentDrawflowJson</textarea>
-                        </div>
-                    }
-                    <div class="debug-panel">
-                        <h4 class="text-info">Debug Info</h4>
-                        <div><b>Selected Node ID(s):</b> @string.Join(", ", _selectedNodeIds)</div>
-                        <Button Color="Color.Info" Class="mb-2" @onclick="ExportNodeList">Export Node List</Button>
-                        <textarea ReadOnly Class="export-data mt-2" Style="min-height: 80px;">@_debugNodeList</textarea>
-                    </div>
-                </div>
-            </LayoutSider>
+<Div Display="Display.Flex"
+     Flex="Flex.Row"
+     Class="min-h-0 w-full"
+     Style="min-height: min(85vh, 56rem);">
+    <Div Class="toolbar-panel rounded-lg border border-border bg-slate-900 text-slate-100"
+         Padding="Padding.Is4"
+         Display="Display.Flex"
+         Flex="Flex.Column"
+         Gap="Gap.Is4"
+         Style="min-width:200px;max-width:320px;overflow-y:auto;">
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Node Operations</H3>
+                <Div Display="Display.Flex" Flex="Flex.Column" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                    <Button OnClick="AddGithubNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">GitHub Node</Button>
+                    <Button OnClick="AddEmailNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Email Node</Button>
+                    <Button OnClick="AddHtmlNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add HTML Node</Button>
+                    <Button OnClick="AddNodeWithData" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Node With Data</Button>
+                    <Button OnClick="AddCustomStyledNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Custom Styled Node</Button>
+                </Div>
+            </div>
+            <div class="toolbar-section">
+                <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">View Controls</H3>
+                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                    <Button OnClick="ZoomIn" Variant="ButtonVariant.Secondary">Zoom In</Button>
+                    <Button OnClick="ZoomOut" Variant="ButtonVariant.Secondary">Zoom Out</Button>
+                    <Button OnClick="ClearCanvas" Variant="ButtonVariant.Destructive">Clear</Button>
+                </Div>
+            </div>
+            <div class="toolbar-section">
+                <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Module Management</H3>
+                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                    <Button OnClick="AddModuleClick" Variant="ButtonVariant.Outline" Class="border-amber-500/60 text-slate-100">Add Module</Button>
+                    <Button OnClick="ChangeModuleClick" Variant="ButtonVariant.Outline" Class="border-amber-500/60 text-slate-100">Change Module</Button>
+                    <Button OnClick="RemoveModuleClick" Variant="ButtonVariant.Outline" Class="border-amber-500/60 text-slate-100">Remove Module</Button>
+                </Div>
+            </div>
+            <div class="toolbar-section">
+                <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Data Operations</H3>
+                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                    <Button OnClick="ExportData" Variant="ButtonVariant.Secondary">Export</Button>
+                    <Button OnClick="ImportData" Variant="ButtonVariant.Secondary">Import</Button>
+                    <Button OnClick="RemoveSelectedNode" Variant="ButtonVariant.Destructive">Remove Selected</Button>
+                    <Button OnClick="ShowCurrentDrawflow" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Show Current Drawflow JSON</Button>
+                </Div>
+            </div>
+            <div class="toolbar-section">
+                <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Advanced</H3>
+                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                    <Button OnClick="AddNodeInput" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Input</Button>
+                    <Button OnClick="AddNodeOutput" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Output</Button>
+                    <Button OnClick="UpdateSelectedNodeData" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Update Data</Button>
+                    <Button OnClick="CreateSampleFlow" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Sample Flow</Button>
+                    <Button OnClick="TestDrawflow" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Test Drawflow</Button>
+                    <Button OnClick="AddTypedNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Typed Node</Button>
+                    <Button OnClick="AddTypedModule" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Typed Module</Button>
+                    <Button OnClick="ImportTypedData" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Import Typed Data</Button>
+                    <Button OnClick="ImportJsonData" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Import JSON Data</Button>
+                </Div>
+            </div>
         </div>
-    </LayoutContent>
-</Layout>
+    </Div>
+    <Div Flex="Flex.Grow.Is1"
+         Class="min-w-0 min-h-0"
+         Style="width:100%;min-width:600px;position:relative;">
+        <Drawflow @ref="_flow"
+                  Options="_options"
+                  OnNodeCreated="HandleNodeCreated"
+                  OnNodeRemoved="HandleNodeRemoved"
+                  OnConnectionCreated="HandleConnectionCreated"
+                  OnConnectionRemoved="HandleConnectionRemoved"
+                  OnNodeSelected="HandleNodeSelected"
+                  OnNodeUnselected="HandleNodeUnselected"
+                  OnDataChanged="HandleDataChanged"
+                  OnZoomChanged="HandleZoomChanged"
+                  OnModuleChanged="HandleModuleChanged"
+                  OnModuleAdded="HandleModuleAdded"
+                  OnModuleRemoved="HandleModuleRemoved"
+                  OnImport="HandleImport"
+                  OnExport="HandleExport"
+                  Class="drawflow-editor h-full w-full">
+        </Drawflow>
+    </Div>
+    <Div Class="info-panel-wrap rounded-lg border border-border bg-slate-900 text-slate-100"
+         Padding="Padding.Is4"
+         Display="Display.Flex"
+         Flex="Flex.Column"
+         Gap="Gap.Is4"
+         Style="min-width:200px;max-width:400px;overflow-x:auto;overflow-y:auto;">
+        <div class="info-panel">
+            <div class="info-section">
+                <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Status</H3>
+                <div class="status-info">
+                    <p><span>Nodes</span> <span class="drawflow-badge">@_nodeCount</span></p>
+                    <p><span>Connections</span> <span class="drawflow-badge">@_connectionCount</span></p>
+                    <p><span>Zoom</span> <span class="drawflow-badge">@_currentZoom.ToString("F2")</span></p>
+                    <p><span>Module</span> <span class="drawflow-badge">@_currentModule</span></p>
+                </div>
+            </div>
+            <div class="info-section">
+                <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Events</H3>
+                <div class="event-log">
+                    @foreach (EventLog log in _eventLogs.Take(10))
+                    {
+                        <div class="log-entry">
+                            <span class="log-time">@log.Timestamp.ToString("HH:mm:ss")</span>
+                            <span class="log-message">@log.Message</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            @if (!_exportedData.IsNullOrEmpty())
+            {
+                <div class="info-section">
+                    <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Exported Data</H3>
+                    <textarea readonly class="export-data">@_exportedData</textarea>
+                </div>
+            }
+            @if (!_currentDrawflowJson.IsNullOrEmpty())
+            {
+                <div class="info-section">
+                    <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Current Drawflow JSON</H3>
+                    <textarea readonly class="export-data">@_currentDrawflowJson</textarea>
+                </div>
+            }
+            <div class="debug-panel">
+                <H4 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Debug Info</H4>
+                <Div Margin="Margin.Is2.FromTop"><Strong>Selected Node ID(s):</Strong> @string.Join(", ", _selectedNodeIds)</Div>
+                <Button OnClick="ExportNodeList" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100 mt-2">Export Node List</Button>
+                <textarea readonly class="export-data mt-2" style="min-height: 80px;">@_debugNodeList</textarea>
+            </div>
+        </div>
+    </Div>
+</Div>
 
 @code {
     private Drawflow? _flow;
