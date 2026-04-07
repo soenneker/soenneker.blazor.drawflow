@@ -1,356 +1,337 @@
-export class DrawflowInterop {
-    constructor() {
-        this.instances = {};
+const editors = new Map();
+
+function getElement(elementId) {
+    const element = document.getElementById(elementId);
+
+    if (!element) {
+        throw new Error(`Drawflow element "${elementId}" was not found.`);
     }
 
-    create(elementId, options) {
-        // Use direct id selector for interop
-        const selector = `#${elementId}`;
-        const container = document.querySelector(selector);
+    return element;
+}
 
-        const editor = new Drawflow(container);
+function getEditor(elementId) {
+    const editor = editors.get(elementId);
 
-        if (options) {
-            // If options is a string (from Blazor), parse it
-            if (typeof options === 'string') {
-                try {
-                    options = JSON.parse(options);
-                } catch (e) {
-                    console.error('Failed to parse Drawflow options:', e);
-                }
-            }
-            Object.assign(editor, options);
-        }
-
-        editor.start();
-        this.instances[elementId] = editor;
+    if (!editor) {
+        throw new Error(`Drawflow editor "${elementId}" has not been created.`);
     }
 
-    addNode(elementId, name, inputs, outputs, posX, posY, className, data, html) {
-        const editor = this.instances[elementId];
-        return editor.addNode(name, inputs, outputs, posX, posY, className, data, html);
-    }
+    return editor;
+}
 
-    removeNode(elementId, id) {
-        const editor = this.instances[elementId];
-        editor.removeNodeId('node-' + id); // Always a string
-    }
+function getFlowJson(elementId) {
+    return JSON.stringify(getEditor(elementId).export());
+}
 
-    addConnection(elementId, outId, inId, outClass, inClass) {
-        const editor = this.instances[elementId];
-        editor.addConnection(outId, inId, outClass, inClass);
-    }
+export function create(elementId, options) {
+    const container = getElement(elementId);
+    const editor = new Drawflow(container);
 
-    export(elementId) {
-        const editor = this.instances[elementId];
-        const data = editor.export();
-        return JSON.stringify(data);
-    }
-
-    exportAsJson(elementId) {
-        const editor = this.instances[elementId];
-        const data = editor.export();
-        return JSON.stringify(data);
-    }
-
-    import(elementId, json) {
-        const editor = this.instances[elementId];
-        editor.import(JSON.parse(json));
-    }
-
-    destroy(elementId) {
-        const editor = this.instances[elementId];
-        if (editor) {
-            editor.destroy();
-            delete this.instances[elementId];
-        }
-    }
-
-    createObserver(elementId) {
-        // This method is used by the EventListeningInterop base class
-        // to observe DOM changes for the element
-        // Use direct id selector for observer
-        const selector = `#${elementId}`;
-        const element = document.querySelector(selector);
-        if (element) {
-            // Create a MutationObserver to watch for changes
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'childList') {
-                        // Handle DOM changes if needed
-                    }
-                });
-            });
-            
-            observer.observe(element, {
-                childList: true,
-                subtree: true
-            });
-        }
-    }
-
-    addEventListener(elementId, eventName, dotNetCallback) {
-        const editor = this.instances[elementId];
-        editor.on(eventName, (...args) => {
-            const json = JSON.stringify(args);
-            dotNetCallback.invokeMethodAsync('Invoke', json);
-        });
-    }
-
-    zoomIn(elementId) {
-        const editor = this.instances[elementId];
-        editor.zoom_in();
-    }
-
-    zoomOut(elementId) {
-        const editor = this.instances[elementId];
-        editor.zoom_out();
-    }
-
-    addModule(elementId, name) {
-        const editor = this.instances[elementId];
-        editor.addModule(name);
-    }
-
-    changeModule(elementId, name) {
-        const editor = this.instances[elementId];
-        editor.changeModule(name);
-    }
-
-    removeModule(elementId, name) {
-        const editor = this.instances[elementId];
-        editor.removeModule(name);
-    }
-
-    getNodeFromId(elementId, id) {
-        const editor = this.instances[elementId];
-        return editor.getNodeFromId(id);
-    }
-
-    getNodesFromName(elementId, name) {
-        const editor = this.instances[elementId];
-        return editor.getNodesFromName(name);
-    }
-
-    updateNodeData(elementId, id, data) {
-        const editor = this.instances[elementId];
-        editor.updateNodeDataFromId(id, data);
-    }
-
-    addNodeInput(elementId, id) {
-        const editor = this.instances[elementId];
-        editor.addNodeInput(id); // Always a string
-    }
-
-    addNodeOutput(elementId, id) {
-        const editor = this.instances[elementId];
-        editor.addNodeOutput(id); // Always a string
-    }
-
-    removeNodeInput(elementId, id, inputClass) {
-        const editor = this.instances[elementId];
-        editor.removeNodeInput(id, inputClass); // Always a string
-    }
-
-    removeNodeOutput(elementId, id, outputClass) {
-        const editor = this.instances[elementId];
-        editor.removeNodeOutput(id, outputClass); // Always a string
-    }
-
-    removeSingleConnection(elementId, outId, inId, outClass, inClass) {
-        const editor = this.instances[elementId];
-        editor.removeSingleConnection(outId, inId, outClass, inClass);
-    }
-
-    updateConnectionNodes(elementId, id) {
-        const editor = this.instances[elementId];
-        editor.updateConnectionNodes('node-' + id); // Always a string
-    }
-
-    removeConnectionNodeId(elementId, id) {
-        const editor = this.instances[elementId];
-        editor.removeConnectionNodeId('node-' + id); // Always a string
-    }
-
-    getModuleFromNodeId(elementId, id) {
-        const editor = this.instances[elementId];
-        return editor.getModuleFromNodeId(id);
-    }
-
-    clearModuleSelected(elementId) {
-        const editor = this.instances[elementId];
-        editor.clearModuleSelected();
-    }
-
-    clear(elementId) {
-        const editor = this.instances[elementId];
-        editor.clear();
-    }
-
-    // Additional methods from Drawflow documentation
-    setZoom(elementId, zoom) {
-        const editor = this.instances[elementId];
-        editor.zoom = zoom;
-    }
-
-    getZoom(elementId) {
-        const editor = this.instances[elementId];
-        return editor.zoom;
-    }
-
-    centerNode(elementId, id) {
-        const editor = this.instances[elementId];
-        editor.centerNode(id);
-    }
-
-    getNodePosition(elementId, id) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        if (node) {
-            return { x: node.pos_x, y: node.pos_y };
-        }
-        return null;
-    }
-
-    setNodePosition(elementId, id, posX, posY) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        if (node) {
-            node.pos_x = posX;
-            node.pos_y = posY;
-            editor.updateConnectionNodes(id);
-        }
-    }
-
-    getNodeHtml(elementId, id) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        return node ? node.html : '';
-    }
-
-    setNodeHtml(elementId, id, html) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        if (node) {
-            node.html = html;
-            editor.updateConnectionNodes(id);
-        }
-    }
-
-    getNodeClass(elementId, id) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        return node ? node.class : '';
-    }
-
-    setNodeClass(elementId, id, className) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        if (node) {
-            node.class = className;
-            editor.updateConnectionNodes(id);
-        }
-    }
-
-    getNodeName(elementId, id) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        return node ? node.name : '';
-    }
-
-    setNodeName(elementId, id, name) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        if (node) {
-            node.name = name;
-            editor.updateConnectionNodes(id);
-        }
-    }
-
-    getNodeConnections(elementId, id) {
-        const editor = this.instances[elementId];
-        const node = editor.getNodeFromId(id);
-        if (node) {
-            const connections = [];
-            if (node.inputs) {
-                Object.keys(node.inputs).forEach(inputKey => {
-                    if (node.inputs[inputKey].connections) {
-                        connections.push(...node.inputs[inputKey].connections);
-                    }
-                });
-            }
-            if (node.outputs) {
-                Object.keys(node.outputs).forEach(outputKey => {
-                    if (node.outputs[outputKey].connections) {
-                        connections.push(...node.outputs[outputKey].connections);
-                    }
-                });
-            }
-            return connections;
-        }
-        return [];
-    }
-
-    isNodeSelected(elementId, id) {
-        const editor = this.instances[elementId];
-        return editor.selectedNodes && editor.selectedNodes.includes(id);
-    }
-
-    selectNode(elementId, id) {
-        const editor = this.instances[elementId];
-        if (!editor.selectedNodes) {
-            editor.selectedNodes = [];
-        }
-        if (!editor.selectedNodes.includes(id)) {
-            editor.selectedNodes.push(id);
-        }
-    }
-
-    unselectNode(elementId, id) {
-        const editor = this.instances[elementId];
-        if (editor.selectedNodes) {
-            const index = editor.selectedNodes.indexOf(id);
-            if (index > -1) {
-                editor.selectedNodes.splice(index, 1);
+    if (options) {
+        if (typeof options === 'string') {
+            try {
+                options = JSON.parse(options);
+            } catch (e) {
+                console.error('Failed to parse Drawflow options:', e);
             }
         }
+
+        Object.assign(editor, options);
     }
 
-    getSelectedNodes(elementId) {
-        const editor = this.instances[elementId];
-        return editor.selectedNodes || [];
-    }
+    editor.start();
+    editors.set(elementId, editor);
+}
 
-    clearSelectedNodes(elementId) {
-        const editor = this.instances[elementId];
-        editor.selectedNodes = [];
-    }
+export function addNode(elementId, name, inputs, outputs, posX, posY, className, data, html) {
+    return getEditor(elementId).addNode(name, inputs, outputs, posX, posY, className, data, html);
+}
 
-    getCurrentModule(elementId) {
-        const editor = this.instances[elementId];
-        return editor.module || 'Home';
-    }
+export function removeNode(elementId, id) {
+    getEditor(elementId).removeNodeId('node-' + id);
+}
 
-    getModules(elementId) {
-        const editor = this.instances[elementId];
-        return Object.keys(editor.drawflow || {});
-    }
+export function addConnection(elementId, outId, inId, outClass, inClass) {
+    getEditor(elementId).addConnection(outId, inId, outClass, inClass);
+}
 
-    isEditMode(elementId) {
-        const editor = this.instances[elementId];
-        return editor.editMode !== false;
-    }
+export function exportFlow(elementId) {
+    return getFlowJson(elementId);
+}
 
-    setEditMode(elementId, editMode) {
-        const editor = this.instances[elementId];
-        editor.editMode = editMode;
-    }
+export function exportAsJson(elementId) {
+    return getFlowJson(elementId);
+}
 
-    // Batch operation example (optional)
-    removeNodes(elementId, ids) {
-        const editor = this.instances[elementId];
-        ids.forEach(id => editor.removeNodeId('node-' + id));
+export function importFlow(elementId, json) {
+    getEditor(elementId).import(JSON.parse(json));
+}
+
+export function destroy(elementId) {
+    const editor = editors.get(elementId);
+
+    if (editor) {
+        editor.destroy();
+        editors.delete(elementId);
     }
 }
 
-window.DrawflowInterop = new DrawflowInterop();
+export function createObserver(elementId) {
+    const element = getElement(elementId);
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+            }
+        });
+    });
+
+    observer.observe(element, {
+        childList: true,
+        subtree: true
+    });
+}
+
+export function addEventListener(elementId, eventName, dotNetCallback) {
+    getEditor(elementId).on(eventName, (...args) => {
+        const json = JSON.stringify(args);
+        dotNetCallback.invokeMethodAsync('Invoke', json);
+    });
+}
+
+export function zoomIn(elementId) {
+    getEditor(elementId).zoom_in();
+}
+
+export function zoomOut(elementId) {
+    getEditor(elementId).zoom_out();
+}
+
+export function addModule(elementId, name) {
+    getEditor(elementId).addModule(name);
+}
+
+export function changeModule(elementId, name) {
+    getEditor(elementId).changeModule(name);
+}
+
+export function removeModule(elementId, name) {
+    getEditor(elementId).removeModule(name);
+}
+
+export function getNodeFromId(elementId, id) {
+    return getEditor(elementId).getNodeFromId(id);
+}
+
+export function getNodesFromName(elementId, name) {
+    return getEditor(elementId).getNodesFromName(name);
+}
+
+export function updateNodeData(elementId, id, data) {
+    getEditor(elementId).updateNodeDataFromId(id, data);
+}
+
+export function addNodeInput(elementId, id) {
+    getEditor(elementId).addNodeInput(id);
+}
+
+export function addNodeOutput(elementId, id) {
+    getEditor(elementId).addNodeOutput(id);
+}
+
+export function removeNodeInput(elementId, id, inputClass) {
+    getEditor(elementId).removeNodeInput(id, inputClass);
+}
+
+export function removeNodeOutput(elementId, id, outputClass) {
+    getEditor(elementId).removeNodeOutput(id, outputClass);
+}
+
+export function removeSingleConnection(elementId, outId, inId, outClass, inClass) {
+    getEditor(elementId).removeSingleConnection(outId, inId, outClass, inClass);
+}
+
+export function updateConnectionNodes(elementId, id) {
+    getEditor(elementId).updateConnectionNodes('node-' + id);
+}
+
+export function removeConnectionNodeId(elementId, id) {
+    getEditor(elementId).removeConnectionNodeId('node-' + id);
+}
+
+export function getModuleFromNodeId(elementId, id) {
+    return getEditor(elementId).getModuleFromNodeId(id);
+}
+
+export function clearModuleSelected(elementId) {
+    getEditor(elementId).clearModuleSelected();
+}
+
+export function clear(elementId) {
+    getEditor(elementId).clear();
+}
+
+export function setZoom(elementId, zoom) {
+    getEditor(elementId).zoom = zoom;
+}
+
+export function getZoom(elementId) {
+    return getEditor(elementId).zoom;
+}
+
+export function centerNode(elementId, id) {
+    getEditor(elementId).centerNode(id);
+}
+
+export function getNodePosition(elementId, id) {
+    const node = getEditor(elementId).getNodeFromId(id);
+
+    if (node) {
+        return { x: node.pos_x, y: node.pos_y };
+    }
+
+    return null;
+}
+
+export function setNodePosition(elementId, id, posX, posY) {
+    const editor = getEditor(elementId);
+    const node = editor.getNodeFromId(id);
+
+    if (node) {
+        node.pos_x = posX;
+        node.pos_y = posY;
+        editor.updateConnectionNodes(id);
+    }
+}
+
+export function getNodeHtml(elementId, id) {
+    const node = getEditor(elementId).getNodeFromId(id);
+    return node ? node.html : '';
+}
+
+export function setNodeHtml(elementId, id, html) {
+    const editor = getEditor(elementId);
+    const node = editor.getNodeFromId(id);
+
+    if (node) {
+        node.html = html;
+        editor.updateConnectionNodes(id);
+    }
+}
+
+export function getNodeClass(elementId, id) {
+    const node = getEditor(elementId).getNodeFromId(id);
+    return node ? node.class : '';
+}
+
+export function setNodeClass(elementId, id, className) {
+    const editor = getEditor(elementId);
+    const node = editor.getNodeFromId(id);
+
+    if (node) {
+        node.class = className;
+        editor.updateConnectionNodes(id);
+    }
+}
+
+export function getNodeName(elementId, id) {
+    const node = getEditor(elementId).getNodeFromId(id);
+    return node ? node.name : '';
+}
+
+export function setNodeName(elementId, id, name) {
+    const editor = getEditor(elementId);
+    const node = editor.getNodeFromId(id);
+
+    if (node) {
+        node.name = name;
+        editor.updateConnectionNodes(id);
+    }
+}
+
+export function getNodeConnections(elementId, id) {
+    const node = getEditor(elementId).getNodeFromId(id);
+
+    if (node) {
+        const connections = [];
+
+        if (node.inputs) {
+            Object.keys(node.inputs).forEach(inputKey => {
+                if (node.inputs[inputKey].connections) {
+                    connections.push(...node.inputs[inputKey].connections);
+                }
+            });
+        }
+
+        if (node.outputs) {
+            Object.keys(node.outputs).forEach(outputKey => {
+                if (node.outputs[outputKey].connections) {
+                    connections.push(...node.outputs[outputKey].connections);
+                }
+            });
+        }
+
+        return connections;
+    }
+
+    return [];
+}
+
+export function isNodeSelected(elementId, id) {
+    const editor = getEditor(elementId);
+    return editor.selectedNodes && editor.selectedNodes.includes(id);
+}
+
+export function selectNode(elementId, id) {
+    const editor = getEditor(elementId);
+
+    if (!editor.selectedNodes) {
+        editor.selectedNodes = [];
+    }
+
+    if (!editor.selectedNodes.includes(id)) {
+        editor.selectedNodes.push(id);
+    }
+}
+
+export function unselectNode(elementId, id) {
+    const editor = getEditor(elementId);
+
+    if (editor.selectedNodes) {
+        const index = editor.selectedNodes.indexOf(id);
+
+        if (index > -1) {
+            editor.selectedNodes.splice(index, 1);
+        }
+    }
+}
+
+export function getSelectedNodes(elementId) {
+    return getEditor(elementId).selectedNodes || [];
+}
+
+export function clearSelectedNodes(elementId) {
+    getEditor(elementId).selectedNodes = [];
+}
+
+export function getCurrentModule(elementId) {
+    return getEditor(elementId).module || 'Home';
+}
+
+export function getModules(elementId) {
+    return Object.keys(getEditor(elementId).drawflow || {});
+}
+
+export function isEditMode(elementId) {
+    return getEditor(elementId).editMode !== false;
+}
+
+export function setEditMode(elementId, editMode) {
+    getEditor(elementId).editMode = editMode;
+}
+
+export function removeNodes(elementId, ids) {
+    const editor = getEditor(elementId);
+    ids.forEach(id => editor.removeNodeId('node-' + id));
+}
