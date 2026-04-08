@@ -21,7 +21,7 @@ namespace Soenneker.Blazor.Drawflow;
 /// <inheritdoc cref="IDrawflowInterop"/>
 public sealed class DrawflowInterop : IDrawflowInterop
 {
-    private const string _modulePath = "/_content/Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
+    private const string _modulePath = "_content/Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
 
     private readonly IResourceLoader _resourceLoader;
     private readonly IModuleImportUtil _moduleImportUtil;
