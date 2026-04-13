@@ -7,6 +7,7 @@
 @using Soenneker.Extensions.String
 @using Soenneker.Utils.Json
 @using Soenneker.Extensions.CancellationTokens
+@using Soenneker.Blazor.Utils.Ids
 
 @inject IDrawflowInterop DrawflowInterop
 @inject ILogger<Drawflow> Logger
@@ -97,11 +98,10 @@
     {
         _initializing = false;
         _initialized = false;
-        _elementGuid = Guid.NewGuid()
-            .ToString("N");
-        _observerId = $"df-observer-{_elementGuid}";
-        _wrapperId = $"df-wrapper-{_elementGuid}";
-        _elementId = $"df-interop-{_elementGuid}";
+        _elementGuid = BlazorIdGenerator.New("df");
+        _observerId = BlazorIdGenerator.Child(_elementGuid, "observer");
+        _wrapperId = BlazorIdGenerator.Child(_elementGuid, "wrapper");
+        _elementId = BlazorIdGenerator.Child(_elementGuid, "interop");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
