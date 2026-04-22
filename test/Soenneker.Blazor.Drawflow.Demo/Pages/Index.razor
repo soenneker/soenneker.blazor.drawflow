@@ -14,13 +14,13 @@
     <Div Class="toolbar-panel rounded-lg border border-border bg-slate-900 text-slate-100"
          Padding="Padding.Is4"
          Display="Display.Flex"
-         Flex="Flex.Column"
+         Flex=@("flex-col")
          Gap="Gap.Is4"
          Style="min-width:200px;max-width:320px;overflow-y:auto;">
         <div class="toolbar">
             <div class="toolbar-section">
                 <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Node Operations</H3>
-                <Div Display="Display.Flex" Flex="Flex.Column" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                <Div Display="Display.Flex" Flex=@("flex-col") Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
                     <Button OnClick="AddGithubNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">GitHub Node</Button>
                     <Button OnClick="AddEmailNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Email Node</Button>
                     <Button OnClick="AddHtmlNode" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add HTML Node</Button>
@@ -30,7 +30,7 @@
             </div>
             <div class="toolbar-section">
                 <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">View Controls</H3>
-                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                <Div Display="Display.Flex" Flex=@("flex-wrap") Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
                     <Button OnClick="ZoomIn" Variant="ButtonVariant.Secondary">Zoom In</Button>
                     <Button OnClick="ZoomOut" Variant="ButtonVariant.Secondary">Zoom Out</Button>
                     <Button OnClick="ClearCanvas" Variant="ButtonVariant.Destructive">Clear</Button>
@@ -38,7 +38,7 @@
             </div>
             <div class="toolbar-section">
                 <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Module Management</H3>
-                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                <Div Display="Display.Flex" Flex=@("flex-wrap") Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
                     <Button OnClick="AddModuleClick" Variant="ButtonVariant.Outline" Class="border-amber-500/60 text-slate-100">Add Module</Button>
                     <Button OnClick="ChangeModuleClick" Variant="ButtonVariant.Outline" Class="border-amber-500/60 text-slate-100">Change Module</Button>
                     <Button OnClick="RemoveModuleClick" Variant="ButtonVariant.Outline" Class="border-amber-500/60 text-slate-100">Remove Module</Button>
@@ -46,7 +46,7 @@
             </div>
             <div class="toolbar-section">
                 <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Data Operations</H3>
-                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                <Div Display="Display.Flex" Flex=@("flex-wrap") Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
                     <Button OnClick="ExportData" Variant="ButtonVariant.Secondary">Export</Button>
                     <Button OnClick="ImportData" Variant="ButtonVariant.Secondary">Import</Button>
                     <Button OnClick="RemoveSelectedNode" Variant="ButtonVariant.Destructive">Remove Selected</Button>
@@ -55,7 +55,7 @@
             </div>
             <div class="toolbar-section">
                 <H3 TextSize="TextSize.Sm" Class="uppercase tracking-wide text-slate-400">Advanced</H3>
-                <Div Display="Display.Flex" Flex="Flex.Wrap" Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
+                <Div Display="Display.Flex" Flex=@("flex-wrap") Gap="Gap.Is2" Margin="Margin.Is3.FromTop">
                     <Button OnClick="AddNodeInput" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Input</Button>
                     <Button OnClick="AddNodeOutput" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Add Output</Button>
                     <Button OnClick="UpdateSelectedNodeData" Variant="ButtonVariant.Outline" Class="border-slate-600 text-slate-100">Update Data</Button>
@@ -69,7 +69,7 @@
             </div>
         </div>
     </Div>
-    <Div Flex="Flex.Grow.Is1"
+    <Div Flex=@("grow")
          Class="min-w-0 min-h-0"
          Style="width:100%;min-width:600px;position:relative;">
         <Drawflow @ref="_flow"
@@ -93,7 +93,7 @@
     <Div Class="info-panel-wrap rounded-lg border border-border bg-slate-900 text-slate-100"
          Padding="Padding.Is4"
          Display="Display.Flex"
-         Flex="Flex.Column"
+         Flex=@("flex-col")
          Gap="Gap.Is4"
          Style="min-width:200px;max-width:400px;overflow-x:auto;overflow-y:auto;">
         <div class="info-panel">

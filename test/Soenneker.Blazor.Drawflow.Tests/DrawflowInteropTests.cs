@@ -1,20 +1,19 @@
 using Soenneker.Blazor.Drawflow.Abstract;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Blazor.Drawflow.Tests;
 
-[Collection("Collection")]
-public sealed class DrawflowInteropTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class DrawflowInteropTests : HostedUnitTest
 {
     private readonly IDrawflowInterop _blazorlibrary;
 
-    public DrawflowInteropTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public DrawflowInteropTests(Host host) : base(host)
     {
         _blazorlibrary = Resolve<IDrawflowInterop>(true);
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
