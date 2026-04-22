@@ -26,10 +26,5 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Soenneker.Blazor.Drawflow\Soenneker.Blazor.Drawflow.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="testconfig.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
 </Project>
+
