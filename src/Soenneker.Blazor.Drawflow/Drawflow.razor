@@ -18,7 +18,7 @@
 
 <div id="@_observerId" ></div>
 <div id="@_wrapperId" >
-    <div @attributes='BuildAttributes("id", _elementId)' ></div>
+    <div @attributes="ElementAttributes" ></div>
 </div>
 
 @code {
@@ -86,6 +86,16 @@
     private bool _initializing;
     private bool _initialized;
     private bool _interopInitialized;
+
+    private Dictionary<string, object> ElementAttributes
+    {
+        get
+        {
+            Dictionary<string, object> attributes = BuildAttributes();
+            attributes["id"] = _elementId;
+            return attributes;
+        }
+    }
 
     private void AddLog(string message, string type = "info")
     {

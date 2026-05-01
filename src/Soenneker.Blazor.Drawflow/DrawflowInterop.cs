@@ -42,24 +42,16 @@ public sealed class DrawflowInterop : IDrawflowInterop
         _interopInitializer = new AsyncInitializer(InitializeInterop);
     }
 
-    private static string NormalizeContentUri(string uri)
-    {
-        if (string.IsNullOrEmpty(uri) || uri.Contains("://", StringComparison.Ordinal))
-            return uri;
-
-        return uri[0] == '/' ? uri : "/" + uri;
-    }
-
     private async ValueTask InitializeStyle(bool useCdn, CancellationToken token)
     {
         (string uri, string? integrity) style = DrawflowUtil.GetUriAndIntegrityForStyle(useCdn);
-        await _resourceLoader.LoadStyle(NormalizeContentUri(style.uri), style.integrity, cancellationToken: token);
+        await _resourceLoader.LoadStyle(style.uri, style.integrity, cancellationToken: token);
     }
 
     private async ValueTask InitializeScript(bool useCdn, CancellationToken token)
     {
         (string uri, string? integrity) script = DrawflowUtil.GetUriAndIntegrityForScript(useCdn);
-        await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(script.uri), _drawflowVariable, script.integrity, cancellationToken: token);
+        await _resourceLoader.LoadScriptAndWaitForVariable(script.uri, _drawflowVariable, script.integrity, cancellationToken: token);
     }
 
     private async ValueTask InitializeInterop(CancellationToken token)
