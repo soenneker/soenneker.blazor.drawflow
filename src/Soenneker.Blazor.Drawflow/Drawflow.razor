@@ -8,16 +8,17 @@
 @using Soenneker.Utils.Json
 @using Soenneker.Extensions.CancellationTokens
 @using Soenneker.Blazor.Utils.Ids
+@using Soenneker.Lepton.Suite
 
 @inject IDrawflowInterop DrawflowInterop
 @inject ILogger<Drawflow> Logger
 
-@inherits Soenneker.Quark.CoreCancellableComponent
+@inherits LeptonCancellableIdentifiableContentElement
 @implements IDrawflow
 
 <div id="@_observerId" ></div>
 <div id="@_wrapperId" >
-    <div id="@_elementId" @attributes="Attributes" ></div>
+    <div @attributes='BuildAttributes("id", _elementId)' ></div>
 </div>
 
 @code {
