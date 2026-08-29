@@ -1,4 +1,6 @@
 const editors = new Map();
+const observers = new Map();
+const callbackReferences = new Map();
 
 function getElement(elementId) {
     const element = document.getElementById(elementId);
@@ -25,6 +27,10 @@ function getFlowJson(elementId) {
 }
 
 export function create(elementId, options) {
+    if (editors.has(elementId)) {
+        throw new Error(`Drawflow editor "${elementId}" has already been created.`);
+    }
+
     const container = getElement(elementId);
     const editor = new Drawflow(container);
 
@@ -75,10 +81,30 @@ export function destroy(elementId) {
         editor.destroy();
         editors.delete(elementId);
     }
+
+    const observer = observers.get(elementId);
+    if (observer) {
+        observer.disconnect();
+        observers.delete(elementId);
+    }
+
+    const references = callbackReferences.get(elementId);
+    if (references) {
+        for (const reference of references) {
+            reference.dispose();
+        }
+
+        callbackReferences.delete(elementId);
+    }
 }
 
 export function createObserver(elementId) {
     const element = getElement(elementId);
+
+    const existingObserver = observers.get(elementId);
+    if (existingObserver) {
+        existingObserver.disconnect();
+    }
 
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -91,13 +117,26 @@ export function createObserver(elementId) {
         childList: true,
         subtree: true
     });
+
+    observers.set(elementId, observer);
 }
 
 export function addEventListener(elementId, eventName, dotNetCallback) {
-    getEditor(elementId).on(eventName, (...args) => {
+    const editor = getEditor(elementId);
+    let references = callbackReferences.get(elementId);
+    if (!references) {
+        references = [];
+        callbackReferences.set(elementId, references);
+    }
+
+    editor.on(eventName, (...args) => {
         const json = JSON.stringify(args);
-        dotNetCallback.invokeMethodAsync('Invoke', json);
+        dotNetCallback.invokeMethodAsync('Invoke', json).catch(error => {
+            console.error(`Drawflow event callback "${eventName}" failed`, error);
+        });
     });
+
+    references.push(dotNetCallback);
 }
 
 export function zoomIn(elementId) {

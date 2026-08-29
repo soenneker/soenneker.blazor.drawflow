@@ -134,7 +134,7 @@
             return;
 
         await Create(cancellationToken: CancellationToken);
-        await DrawflowInterop.CreateObserver(_observerId, CancellationToken);
+        await DrawflowInterop.CreateObserver(_elementId, CancellationToken);
     }
 
     public async ValueTask Create(DrawflowOptions? options = null, CancellationToken cancellationToken = default)
@@ -167,6 +167,19 @@
             await AddEventListeners(token);
 
             _initialized = true;
+        }
+        catch
+        {
+            try
+            {
+                await DrawflowInterop.Destroy(_elementId);
+            }
+            catch (Exception cleanupException)
+            {
+                Logger.LogWarning(cleanupException, "Could not clean up Drawflow after initialization failed");
+            }
+
+            throw;
         }
         finally
         {
@@ -877,19 +890,20 @@
 
     public override async ValueTask DisposeAsync()
     {
-        await base.DisposeAsync();
-
         try
         {
             if (_initialized)
             {
-                await DrawflowInterop.Destroy(_elementId, CancellationToken);
+                await DrawflowInterop.Destroy(_elementId);
+                _initialized = false;
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error disposing Drawflow");
         }
+
+        await base.DisposeAsync();
     }
 
 }

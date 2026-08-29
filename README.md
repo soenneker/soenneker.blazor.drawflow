@@ -4,23 +4,11 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/soenneker.blazor.drawflow.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.drawflow/)
 [![](https://img.shields.io/badge/Demo-Live-blueviolet?style=for-the-badge&logo=github)](https://soenneker.github.io/soenneker.blazor.drawflow)
 
-# ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Blazor.Drawflow
+# Soenneker.Blazor.Drawflow
 
-**Soenneker.Blazor.Drawflow** is a lightweight, modern Blazor wrapper for [drawflow.js](https://github.com/jerosoler/Drawflow), enabling interactive node-based diagrams in your Blazor applications. It supports advanced features like modules, zoom, import/export, and full event handling.
+A Blazor component and interop API for building editable, node-based diagrams with [Drawflow](https://github.com/jerosoler/Drawflow).
 
-![image](https://github.com/user-attachments/assets/cda7f3b8-c440-4dcd-b035-54b2b03f0bef)
-
-## Features
-
-- **Node and Connection Management**: Add, remove, and update nodes and connections programmatically.
-- **Modules**: Organize nodes into modules and switch between them.
-- **Zoom & Pan**: Built-in zoom controls and canvas panning.
-- **Import/Export**: Serialize and restore flows as JSON.
-- **Event Handling**: Subscribe to all major events (node created, removed, selected, data changed, etc).
-- **Customizable**: Pass options to control rerouting, curvature, zoom limits, and more.
-- **CDN or Local Assets**: Load drawflow.js and CSS from CDN or local files.
-
----
+![Drawflow editor](https://github.com/user-attachments/assets/cda7f3b8-c440-4dcd-b035-54b2b03f0bef)
 
 ## Installation
 
@@ -28,176 +16,98 @@
 dotnet add package Soenneker.Blazor.Drawflow
 ```
 
----
+## Setup
 
-## Quick Start
-
-1. **Register Services** (in `Program.cs`):
+Register the interop service in `Program.cs`:
 
 ```csharp
+using Soenneker.Blazor.Drawflow.Registrars;
+
 builder.Services.AddDrawflowInteropAsScoped();
 ```
 
-2. **Add the Component** (in your `.razor` file):
+Add the component namespace to `_Imports.razor`:
 
 ```razor
-<Drawflow @ref="Flow" Options="_options" OnNodeCreated="HandleNodeCreated" style="height:400px"></Drawflow>
+@using Soenneker.Blazor.Drawflow
+@using Soenneker.Blazor.Drawflow.Options
+```
+
+## Create an editor
+
+Give the component an explicit height; Drawflow needs a sized container to render a usable canvas.
+
+```razor
+<Drawflow @ref="_flow"
+          Options="_options"
+          OnNodeSelected="HandleSelection"
+          style="height: 32rem; width: 100%;" />
 
 @code {
-    private Drawflow? Flow;
-    private readonly DrawflowOptions _options = new();
+    private Drawflow? _flow;
 
-    private Task HandleNodeCreated(string id)
+    private readonly DrawflowOptions _options = new()
     {
-        Console.WriteLine($"Node created {id}");
+        Reroute = true,
+        ZoomMin = 0.4,
+        ZoomMax = 1.8,
+        UseUuid = true
+    };
+
+    private Task HandleSelection(List<string> nodeIds)
+    {
+        // nodeIds contains the current selection reported by Drawflow.
         return Task.CompletedTask;
     }
 }
 ```
 
----
+The editor is created after its first render. Call methods through the component reference from a user action or after the parent component has rendered—not during `OnInitialized{Async}`.
 
-### Event Callbacks
-
-```razor
-<Drawflow
-    @ref="Flow"
-    Options="_options"
-    OnNodeCreated="HandleNodeCreated"
-    OnNodeRemoved="HandleNodeRemoved"
-    OnConnectionCreated="HandleConnectionCreated"
-    OnDataChanged="HandleDataChanged"
-    ... />
-```
-
-### Programmatic API
-
-The Drawflow component implements `IDrawflow` interface, providing a clean API for programmatic control:
+## Add nodes and connections
 
 ```csharp
-// Using the component reference
-await Flow.AddNode("github", 1, 1, 150, 150, "github", new { name = "GitHub" }, "<div>GitHub</div>");
-await Flow.AddConnection("github", "slack", "output", "input");
-await Flow.ZoomIn();
+await _flow!.AddNode(
+    name: "source",
+    inputs: 0,
+    outputs: 1,
+    posX: 80,
+    posY: 120,
+    className: "source-node",
+    data: new { endpoint = "/orders" },
+    html: "<strong>Orders</strong>");
 
-// Export as strongly-typed object
-DrawflowExport graph = await Flow.Export();
+await _flow.AddNode(
+    name: "processor",
+    inputs: 1,
+    outputs: 0,
+    posX: 360,
+    posY: 120,
+    className: "processor-node",
+    data: null,
+    html: "<strong>Process order</strong>");
 
-// Export as JSON string
-string json = await Flow.ExportAsJson();
+string sourceId = (await _flow.GetNodesFromName("source")).Single();
+string processorId = (await _flow.GetNodesFromName("processor")).Single();
+
+await _flow.AddConnection(sourceId, processorId, "output_1", "input_1");
 ```
 
-### Interface Usage
+Node HTML is inserted into the page by Drawflow. Never pass unsanitized user content to `AddNode`, `SetNodeHtml`, or imported flow data.
 
-You can also use the `IDrawflow` interface for dependency injection and testing:
+## Save and restore a flow
 
 ```csharp
-// In your service registration
-services.AddScoped<IDrawflow, Drawflow>();
-
-// In your component or service
-@inject IDrawflow DrawflowService
-
-// Usage
-await DrawflowService.AddNode("test", 1, 1, 100, 100, "test", null, "<div>Test</div>");
+string json = await _flow!.ExportAsJson();
+await _flow.Import(json);
 ```
 
-### Strongly-Typed Methods
+Use `Export()` and `Import(DrawflowExport)` when you prefer the models from `Soenneker.Blazor.Drawflow.Dtos`. Treat imported JSON as untrusted input: validate its size and contents before rendering it.
 
-The library provides overload methods that accept strongly-typed objects for better type safety and IntelliSense support:
+## Events
 
-```csharp
-// Add node using strongly-typed DrawflowNode
-var node = new DrawflowNode
-{
-    Name = "MyNode",
-    PosX = 100,
-    PosY = 100,
-    Class = "my-node",
-    Html = "<div>My Node</div>",
-    Data = new Dictionary<string, object> { ["key"] = "value" }
-};
-await Flow.AddNode(node);
+The component exposes callbacks for node, connection, module, selection, data, zoom, reroute, translation, import, and export events. `OnNodeSelected` and `OnNodeUnselected` provide `List<string>` values. The other callbacks expose Drawflow's JavaScript arguments as a JSON array in a `string`, so deserialize the payload according to the event you subscribe to.
 
-// Add module using strongly-typed DrawflowModule
-var module = new DrawflowModule
-{
-    Data = new Dictionary<string, DrawflowNode>
-    {
-        ["node1"] = new DrawflowNode { Name = "Node1", PosX = 100, PosY = 100 }
-    }
-};
-await Flow.AddModule("MyModule", module);
+## Asset loading
 
-// Import using strongly-typed DrawflowExport
-var drawflowExport = new DrawflowExport
-{
-    Drawflow = new Dictionary<string, DrawflowModule>
-    {
-        ["Home"] = new DrawflowModule { Data = new Dictionary<string, DrawflowNode>() }
-    }
-};
-await Flow.Import(drawflowExport);
-
-// Import from JSON string
-await Flow.Import(jsonString);
-```
-
-### Options
-
-```csharp
-var options = new DrawflowOptions {
-    Reroute = true,
-    Curvature = 0.3,
-    Zoom = 1.0,
-    ZoomMax = 2.0,
-    ZoomMin = 0.3,
-    DraggableInputs = true,
-    UseUuid = true,
-    ManualCreate = false // auto-create on render
-};
-```
-
-### Export Models
-
-The library provides strongly-typed models for working with exported drawflow data:
-
-```csharp
-// Main graph structure
-public class DrawflowExport
-{
-    public Dictionary<string, DrawflowModule>? Drawflow { get; set; }
-}
-
-// Module containing nodes
-public class DrawflowModule
-{
-    public Dictionary<string, DrawflowNode>? Data { get; set; }
-}
-
-// Individual node with connections
-public class DrawflowNode
-{
-    public string? Id { get; set; }
-    public string? Name { get; set; }
-    public Dictionary<string, object>? Data { get; set; }
-    public Dictionary<string, DrawflowNodeIO>? Inputs { get; set; }
-    public Dictionary<string, DrawflowNodeIO>? Outputs { get; set; }
-    public int PosX { get; set; }
-    public int PosY { get; set; }
-}
-
-// Input/Output connections
-public class DrawflowNodeIO
-{
-    public List<DrawflowConnection>? Connections { get; set; }
-}
-
-// Connection between nodes
-public class DrawflowConnection
-{
-    public string? Node { get; set; }
-    public string? Input { get; set; }
-    public string? Output { get; set; }
-}
-```
+Drawflow's pinned JavaScript and CSS are loaded from jsDelivr by default with integrity checks. Set `UseCdn = false` to use the copies packaged with the NuGet package. Use the same setting for every Drawflow component in a scoped session because the shared assets are initialized once.

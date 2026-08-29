@@ -217,14 +217,23 @@ public sealed class DrawflowInterop : IDrawflowInterop
         }
     }
 
-    public ValueTask AddEventListener(string elementId, string eventName, EventCallback<string> callback, CancellationToken cancellationToken = default)
+    public async ValueTask AddEventListener(string elementId, string eventName, EventCallback<string> callback, CancellationToken cancellationToken = default)
     {
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
-            var dotNet = DotNetObjectReference.Create(new CallbackInvoker(callback));
-            return InvokeVoidAsync("addEventListener", linked, elementId, eventName, dotNet);
+            DotNetObjectReference<CallbackInvoker> dotNet = DotNetObjectReference.Create(new CallbackInvoker(callback));
+
+            try
+            {
+                await InvokeVoidAsync("addEventListener", linked, elementId, eventName, dotNet);
+            }
+            catch
+            {
+                dotNet.Dispose();
+                throw;
+            }
         }
     }
 
