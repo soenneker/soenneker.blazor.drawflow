@@ -17,6 +17,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="options">Configuration options for the drawflow instance</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the create operation is complete.</returns>
     ValueTask Create(DrawflowOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -31,6 +32,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="data">Custom data object</param>
     /// <param name="html">HTML content for the node</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node addition is complete.</returns>
     ValueTask AddNode(string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -38,6 +40,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="node">Strongly-typed DrawflowNode object</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node addition is complete.</returns>
     ValueTask AddNode(DrawflowNode node, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -48,6 +51,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="outputClass">Output class name</param>
     /// <param name="inputClass">Input class name</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the connection addition is complete.</returns>
     ValueTask AddConnection(string outputNode, string inputNode, string outputClass, string inputClass, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -55,6 +59,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="nodeId">ID of the node to remove</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node removal is complete.</returns>
     ValueTask RemoveNode(string nodeId, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -62,6 +67,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="nodeId">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the connection node id removal is complete.</returns>
     ValueTask RemoveConnectionNodeId(string nodeId, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -86,6 +92,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="id">Node ID</param>
     /// <param name="data">New data object</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node data update is complete.</returns>
     ValueTask UpdateNodeData(string id, object data, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -93,6 +100,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="id">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the connection nodes update is complete.</returns>
     ValueTask UpdateConnectionNodes(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -107,6 +115,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// Clear the currently selected module
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the Drawflow has been cleared.</returns>
     ValueTask ClearModuleSelected(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -128,6 +137,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="json">JSON string to import</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the import operation is complete.</returns>
     ValueTask Import(string json, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -135,18 +145,21 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="drawflowExport">Strongly-typed DrawflowExport object to import</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the import operation is complete.</returns>
     ValueTask Import(DrawflowExport drawflowExport, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Zoom in the drawflow canvas
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the zoom in operation is complete.</returns>
     ValueTask ZoomIn(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Zoom out the drawflow canvas
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the zoom out operation is complete.</returns>
     ValueTask ZoomOut(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -154,6 +167,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="name">Name of the module</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the module addition is complete.</returns>
     ValueTask AddModule(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -162,6 +176,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="moduleName">Name of the module</param>
     /// <param name="module">Strongly-typed DrawflowModule object</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the module addition is complete.</returns>
     ValueTask AddModule(string moduleName, DrawflowModule module, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -169,6 +184,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="name">Name of the module to change to</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the change module operation is complete.</returns>
     ValueTask ChangeModule(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -176,6 +192,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="name">Name of the module to remove</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the module removal is complete.</returns>
     ValueTask RemoveModule(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -183,6 +200,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="id">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node input addition is complete.</returns>
     ValueTask AddNodeInput(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -190,6 +208,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="id">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node output addition is complete.</returns>
     ValueTask AddNodeOutput(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -198,6 +217,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="id">Node ID</param>
     /// <param name="inputClass">Input class name</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node input removal is complete.</returns>
     ValueTask RemoveNodeInput(string id, string inputClass, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -206,6 +226,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="id">Node ID</param>
     /// <param name="outputClass">Output class name</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node output removal is complete.</returns>
     ValueTask RemoveNodeOutput(string id, string outputClass, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -216,12 +237,14 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="outClass">Output class name</param>
     /// <param name="inClass">Input class name</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the single connection removal is complete.</returns>
     ValueTask RemoveSingleConnection(string outId, string inId, string outClass, string inClass, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Clear all content from the drawflow
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the Drawflow has been cleared.</returns>
     ValueTask Clear(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -229,6 +252,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="zoom">Zoom level (0.1 to 2.0)</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the zoom has been stored.</returns>
     ValueTask SetZoom(double zoom, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -243,6 +267,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="id">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the center node operation is complete.</returns>
     ValueTask CenterNode(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -260,6 +285,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="posX">X position</param>
     /// <param name="posY">Y position</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node position has been stored.</returns>
     ValueTask SetNodePosition(string id, int posX, int posY, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -276,6 +302,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="id">Node ID</param>
     /// <param name="html">HTML content</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node html has been stored.</returns>
     ValueTask SetNodeHtml(string id, string html, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -292,6 +319,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="id">Node ID</param>
     /// <param name="className">CSS class name</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node class has been stored.</returns>
     ValueTask SetNodeClass(string id, string className, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -308,6 +336,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <param name="id">Node ID</param>
     /// <param name="name">Node name</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the node name has been stored.</returns>
     ValueTask SetNodeName(string id, string name, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -331,6 +360,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="id">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the select node operation is complete.</returns>
     ValueTask SelectNode(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -338,6 +368,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// </summary>
     /// <param name="id">Node ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the unselect node operation is complete.</returns>
     ValueTask UnselectNode(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -351,6 +382,7 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// Clear all selected nodes
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the Drawflow has been cleared.</returns>
     ValueTask ClearSelectedNodes(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -377,7 +409,8 @@ public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
     /// <summary>
     /// Set edit mode
     /// </summary>
-    /// <param name="editMode">Whether to enable edit mode</param>
+    /// <param name="editMode">Whether edit mode.</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes when the edit mode has been stored.</returns>
     ValueTask SetEditMode(bool editMode, CancellationToken cancellationToken = default);
 }
