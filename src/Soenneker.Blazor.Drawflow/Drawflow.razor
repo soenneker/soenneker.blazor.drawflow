@@ -22,12 +22,10 @@
 </div>
 
 @code {
-    private readonly string _elementGuid;
     private readonly string _observerId;
     private readonly string _wrapperId;
     private readonly string _elementId;
 
-    private readonly List<EventLog> _eventLogs = [];
 
     [Parameter]
     public DrawflowOptions? Options { get; set; }
@@ -97,22 +95,14 @@
         }
     }
 
-    private void AddLog(string message, string type = "info")
-    {
-        _eventLogs.Insert(0, new EventLog { Message = message, Type = type });
-
-        if (_eventLogs.Count > 50)
-            _eventLogs.RemoveAt(_eventLogs.Count - 1);
-    }
-
     public Drawflow()
     {
         _initializing = false;
         _initialized = false;
-        _elementGuid = BlazorIdGenerator.New("df");
-        _observerId = BlazorIdGenerator.Child(_elementGuid, "observer");
-        _wrapperId = BlazorIdGenerator.Child(_elementGuid, "wrapper");
-        _elementId = BlazorIdGenerator.Child(_elementGuid, "interop");
+        string elementGuid = BlazorIdGenerator.New("df");
+        _observerId = BlazorIdGenerator.Child(elementGuid, "observer");
+        _wrapperId = BlazorIdGenerator.Child(elementGuid, "wrapper");
+        _elementId = BlazorIdGenerator.Child(elementGuid, "interop");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

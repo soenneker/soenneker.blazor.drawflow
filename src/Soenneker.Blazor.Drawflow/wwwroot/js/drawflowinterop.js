@@ -1,5 +1,4 @@
 const editors = new Map();
-const observers = new Map();
 const callbackReferences = new Map();
 
 function getElement(elementId) {
@@ -82,12 +81,6 @@ export function destroy(elementId) {
         editors.delete(elementId);
     }
 
-    const observer = observers.get(elementId);
-    if (observer) {
-        observer.disconnect();
-        observers.delete(elementId);
-    }
-
     const references = callbackReferences.get(elementId);
     if (references) {
         for (const reference of references) {
@@ -99,26 +92,7 @@ export function destroy(elementId) {
 }
 
 export function createObserver(elementId) {
-    const element = getElement(elementId);
-
-    const existingObserver = observers.get(elementId);
-    if (existingObserver) {
-        existingObserver.disconnect();
-    }
-
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'childList') {
-            }
-        });
-    });
-
-    observer.observe(element, {
-        childList: true,
-        subtree: true
-    });
-
-    observers.set(elementId, observer);
+    getElement(elementId);
 }
 
 export function addEventListener(elementId, eventName, dotNetCallback) {

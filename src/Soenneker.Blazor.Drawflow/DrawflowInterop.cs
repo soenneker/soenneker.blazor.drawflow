@@ -59,9 +59,9 @@ public sealed class DrawflowInterop : IDrawflowInterop
         _ = await _moduleImportUtil.GetContentModuleReference(_modulePath, token);
     }
 
-    private async ValueTask<IJSObjectReference> GetModule(CancellationToken cancellationToken)
+    private ValueTask<IJSObjectReference> GetModule(CancellationToken cancellationToken)
     {
-        return await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
+        return _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
     }
 
     private async ValueTask InvokeVoidAsync(string identifier, CancellationToken cancellationToken, params object?[] args)
@@ -74,6 +74,36 @@ public sealed class DrawflowInterop : IDrawflowInterop
     {
         IJSObjectReference module = await GetModule(cancellationToken);
         return await module.InvokeAsync<T>(identifier, cancellationToken, args);
+    }
+
+    private ValueTask InvokeLinkedVoidAsync(string identifier, CancellationToken cancellationToken, params object?[] args)
+    {
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
+        return source is null ? InvokeVoidAsync(identifier, linked, args) : InvokeOwnedVoidAsync(identifier, source, args);
+    }
+
+    private ValueTask<T> InvokeLinkedAsync<T>(string identifier, CancellationToken cancellationToken, params object?[] args)
+    {
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
+        return source is null ? InvokeAsync<T>(identifier, linked, args) : InvokeOwnedAsync<T>(identifier, source, args);
+    }
+
+    private async ValueTask InvokeOwnedVoidAsync(string identifier, CancellationTokenSource source, object?[] args)
+    {
+        using (source)
+        {
+            IJSObjectReference module = await GetModule(source.Token);
+            await module.InvokeVoidAsync(identifier, source.Token, args);
+        }
+    }
+
+    private async ValueTask<T> InvokeOwnedAsync<T>(string identifier, CancellationTokenSource source, object?[] args)
+    {
+        using (source)
+        {
+            IJSObjectReference module = await GetModule(source.Token);
+            return await module.InvokeAsync<T>(identifier, source.Token, args);
+        }
     }
 
     public async ValueTask Initialize(bool useCdn, CancellationToken cancellationToken = default)
@@ -111,12 +141,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("addNode", linked, elementId, name, inputs, outputs, posX, posY, className, data, html);
-        }
+        return InvokeLinkedVoidAsync("addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, data, html);
     }
 
     public async ValueTask AddNode(string elementId, DrawflowNode node, CancellationToken cancellationToken = default)
@@ -137,32 +162,17 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask RemoveNode(string elementId, string nodeId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("removeNode", linked, elementId, nodeId);
-        }
+        return InvokeLinkedVoidAsync("removeNode", cancellationToken, elementId, nodeId);
     }
 
     public ValueTask AddConnection(string elementId, string outputNode, string inputNode, string outputClass, string inputClass, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("addConnection", linked, elementId, outputNode, inputNode, outputClass, inputClass);
-        }
+        return InvokeLinkedVoidAsync("addConnection", cancellationToken, elementId, outputNode, inputNode, outputClass, inputClass);
     }
 
     public ValueTask<string> ExportAsJson(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<string>("exportAsJson", linked, elementId);
-        }
+        return InvokeLinkedAsync<string>("exportAsJson", cancellationToken, elementId);
     }
 
     public async ValueTask<DrawflowExport> Export(string elementId, CancellationToken cancellationToken = default)
@@ -178,12 +188,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask Import(string elementId, string json, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("importFlow", linked, elementId, json);
-        }
+        return InvokeLinkedVoidAsync("importFlow", cancellationToken, elementId, json);
     }
 
     public async ValueTask Import(string elementId, DrawflowExport drawflowExport, CancellationToken cancellationToken = default)
@@ -199,22 +204,12 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask Destroy(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("destroy", linked, elementId);
-        }
+        return InvokeLinkedVoidAsync("destroy", cancellationToken, elementId);
     }
 
     public ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("createObserver", linked, elementId);
-        }
+        return InvokeLinkedVoidAsync("createObserver", cancellationToken, elementId);
     }
 
     public async ValueTask AddEventListener(string elementId, string eventName, EventCallback<string> callback, CancellationToken cancellationToken = default)
@@ -239,32 +234,17 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask ZoomIn(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("zoomIn", linked, elementId);
-        }
+        return InvokeLinkedVoidAsync("zoomIn", cancellationToken, elementId);
     }
 
     public ValueTask ZoomOut(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("zoomOut", linked, elementId);
-        }
+        return InvokeLinkedVoidAsync("zoomOut", cancellationToken, elementId);
     }
 
     public ValueTask AddModule(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("addModule", linked, elementId, name);
-        }
+        return InvokeLinkedVoidAsync("addModule", cancellationToken, elementId, name);
     }
 
     public async ValueTask AddModule(string elementId, string moduleName, DrawflowModule module, CancellationToken cancellationToken = default)
@@ -288,22 +268,12 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask ChangeModule(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("changeModule", linked, elementId, name);
-        }
+        return InvokeLinkedVoidAsync("changeModule", cancellationToken, elementId, name);
     }
 
     public ValueTask RemoveModule(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("removeModule", linked, elementId, name);
-        }
+        return InvokeLinkedVoidAsync("removeModule", cancellationToken, elementId, name);
     }
 
     public async ValueTask<DrawflowNode?> GetNodeFromId(string elementId, string id, CancellationToken cancellationToken = default)
@@ -322,332 +292,167 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask<List<string>> GetNodesFromName(string elementId, string name, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<List<string>>("getNodesFromName", linked, elementId, name);
-        }
+        return InvokeLinkedAsync<List<string>>("getNodesFromName", cancellationToken, elementId, name);
     }
 
     public ValueTask UpdateNodeData(string elementId, string id, object data, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("updateNodeData", linked, elementId, id, data);
-        }
+        return InvokeLinkedVoidAsync("updateNodeData", cancellationToken, elementId, id, data);
     }
 
     public ValueTask AddNodeInput(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("addNodeInput", linked, elementId, id);
-        }
+        return InvokeLinkedVoidAsync("addNodeInput", cancellationToken, elementId, id);
     }
 
     public ValueTask AddNodeOutput(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("addNodeOutput", linked, elementId, id);
-        }
+        return InvokeLinkedVoidAsync("addNodeOutput", cancellationToken, elementId, id);
     }
 
     public ValueTask RemoveNodeInput(string elementId, string id, string inputClass, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("removeNodeInput", linked, elementId, id, inputClass);
-        }
+        return InvokeLinkedVoidAsync("removeNodeInput", cancellationToken, elementId, id, inputClass);
     }
 
     public ValueTask RemoveNodeOutput(string elementId, string id, string outputClass, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("removeNodeOutput", linked, elementId, id, outputClass);
-        }
+        return InvokeLinkedVoidAsync("removeNodeOutput", cancellationToken, elementId, id, outputClass);
     }
 
     public ValueTask RemoveSingleConnection(string elementId, string outId, string inId, string outClass, string inClass, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("removeSingleConnection", linked, elementId, outId, inId, outClass, inClass);
-        }
+        return InvokeLinkedVoidAsync("removeSingleConnection", cancellationToken, elementId, outId, inId, outClass, inClass);
     }
 
     public ValueTask UpdateConnectionNodes(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("updateConnectionNodes", linked, elementId, id);
-        }
+        return InvokeLinkedVoidAsync("updateConnectionNodes", cancellationToken, elementId, id);
     }
 
     public ValueTask RemoveConnectionNodeId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("removeConnectionNodeId", linked, elementId, id);
-        }
+        return InvokeLinkedVoidAsync("removeConnectionNodeId", cancellationToken, elementId, id);
     }
 
     public ValueTask<string?> GetModuleFromNodeId(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<string?>("getModuleFromNodeId", linked, elementId, id);
-        }
+        return InvokeLinkedAsync<string?>("getModuleFromNodeId", cancellationToken, elementId, id);
     }
 
     public ValueTask ClearModuleSelected(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("clearModuleSelected", linked, elementId);
-        }
+        return InvokeLinkedVoidAsync("clearModuleSelected", cancellationToken, elementId);
     }
 
     public ValueTask Clear(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("clear", linked, elementId);
-        }
+        return InvokeLinkedVoidAsync("clear", cancellationToken, elementId);
     }
 
     public ValueTask SetZoom(string elementId, double zoom, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("setZoom", linked, elementId, zoom);
-        }
+        return InvokeLinkedVoidAsync("setZoom", cancellationToken, elementId, zoom);
     }
 
     public ValueTask<double> GetZoom(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<double>("getZoom", linked, elementId);
-        }
+        return InvokeLinkedAsync<double>("getZoom", cancellationToken, elementId);
     }
 
     public ValueTask CenterNode(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("centerNode", linked, elementId, id);
-        }
+        return InvokeLinkedVoidAsync("centerNode", cancellationToken, elementId, id);
     }
 
     public ValueTask<object> GetNodePosition(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<object>("getNodePosition", linked, elementId, id);
-        }
+        return InvokeLinkedAsync<object>("getNodePosition", cancellationToken, elementId, id);
     }
 
     public ValueTask SetNodePosition(string elementId, string id, int posX, int posY, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("setNodePosition", linked, elementId, id, posX, posY);
-        }
+        return InvokeLinkedVoidAsync("setNodePosition", cancellationToken, elementId, id, posX, posY);
     }
 
     public ValueTask<string> GetNodeHtml(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<string>("getNodeHtml", linked, elementId, id);
-        }
+        return InvokeLinkedAsync<string>("getNodeHtml", cancellationToken, elementId, id);
     }
 
     public ValueTask SetNodeHtml(string elementId, string id, string html, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("setNodeHtml", linked, elementId, id, html);
-        }
+        return InvokeLinkedVoidAsync("setNodeHtml", cancellationToken, elementId, id, html);
     }
 
     public ValueTask<string> GetNodeClass(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<string>("getNodeClass", linked, elementId, id);
-        }
+        return InvokeLinkedAsync<string>("getNodeClass", cancellationToken, elementId, id);
     }
 
     public ValueTask SetNodeClass(string elementId, string id, string className, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("setNodeClass", linked, elementId, id, className);
-        }
+        return InvokeLinkedVoidAsync("setNodeClass", cancellationToken, elementId, id, className);
     }
 
     public ValueTask<string> GetNodeName(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<string>("getNodeName", linked, elementId, id);
-        }
+        return InvokeLinkedAsync<string>("getNodeName", cancellationToken, elementId, id);
     }
 
     public ValueTask SetNodeName(string elementId, string id, string name, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("setNodeName", linked, elementId, id, name);
-        }
+        return InvokeLinkedVoidAsync("setNodeName", cancellationToken, elementId, id, name);
     }
 
     public ValueTask<List<object>> GetNodeConnections(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<List<object>>("getNodeConnections", linked, elementId, id);
-        }
+        return InvokeLinkedAsync<List<object>>("getNodeConnections", cancellationToken, elementId, id);
     }
 
     public ValueTask<bool> IsNodeSelected(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<bool>("isNodeSelected", linked, elementId, id);
-        }
+        return InvokeLinkedAsync<bool>("isNodeSelected", cancellationToken, elementId, id);
     }
 
     public ValueTask SelectNode(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("selectNode", linked, elementId, id);
-        }
+        return InvokeLinkedVoidAsync("selectNode", cancellationToken, elementId, id);
     }
 
     public ValueTask UnselectNode(string elementId, string id, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("unselectNode", linked, elementId, id);
-        }
+        return InvokeLinkedVoidAsync("unselectNode", cancellationToken, elementId, id);
     }
 
     public ValueTask<List<string>> GetSelectedNodes(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<List<string>>("getSelectedNodes", linked, elementId);
-        }
+        return InvokeLinkedAsync<List<string>>("getSelectedNodes", cancellationToken, elementId);
     }
 
     public ValueTask ClearSelectedNodes(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("clearSelectedNodes", linked, elementId);
-        }
+        return InvokeLinkedVoidAsync("clearSelectedNodes", cancellationToken, elementId);
     }
 
     public ValueTask<string> GetCurrentModule(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<string>("getCurrentModule", linked, elementId);
-        }
+        return InvokeLinkedAsync<string>("getCurrentModule", cancellationToken, elementId);
     }
 
     public ValueTask<List<string>> GetModules(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<List<string>>("getModules", linked, elementId);
-        }
+        return InvokeLinkedAsync<List<string>>("getModules", cancellationToken, elementId);
     }
 
     public ValueTask<bool> IsEditMode(string elementId, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeAsync<bool>("isEditMode", linked, elementId);
-        }
+        return InvokeLinkedAsync<bool>("isEditMode", cancellationToken, elementId);
     }
 
     public ValueTask SetEditMode(string elementId, bool editMode, CancellationToken cancellationToken = default)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-        {
-            return InvokeVoidAsync("setEditMode", linked, elementId, editMode);
-        }
+        return InvokeLinkedVoidAsync("setEditMode", cancellationToken, elementId, editMode);
     }
 
     /// <summary>
