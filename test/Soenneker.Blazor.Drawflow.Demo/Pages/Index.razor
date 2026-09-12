@@ -168,13 +168,6 @@
     private string _currentDrawflowJson = "";
     private string _debugNodeList = "";
 
-    private class EventLog
-    {
-        public DateTime Timestamp { get; set; } = DateTime.Now;
-        public string Message { get; set; } = "";
-        public string Type { get; set; } = "info";
-    }
-
     private void AddLog(string message, string type = "info")
     {
         _eventLogs.Insert(0, new EventLog { Message = message, Type = type });

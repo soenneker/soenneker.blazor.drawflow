@@ -4,6 +4,7 @@ bg-primary
 border-b
 border-border
 flex
+flex-row
 font-medium
 font-semibold
 gap-2
