@@ -45,7 +45,7 @@
 
     <ItemGroup>
         <PackageReference Include="Soenneker.Asyncs.Initializers" Version="4.0.102" />
-        <PackageReference Include="Soenneker.Blazor.Drawflow.Dtos" Version="4.0.26" />
+        <PackageReference Include="Soenneker.Blazor.Drawflow.Dtos" Version="4.0.27" />
         <PackageReference Include="Soenneker.Blazor.Utils.InteropEventListener" Version="4.0.4129" />
         <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="4.0.1751" />
         <PackageReference Include="Soenneker.Extensions.List" Version="4.0.990" />
