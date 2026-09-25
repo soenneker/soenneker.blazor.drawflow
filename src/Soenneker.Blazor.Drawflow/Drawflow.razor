@@ -22,6 +22,16 @@
 </div>
 
 @code {
+
+    [Inject]
+    private System.IServiceProvider JsonServices { get; set; } = null!;
+
+    private System.Text.Json.JsonSerializerOptions? _jsonOptions;
+
+    private System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> GetJsonTypeInfo<T>() =>
+        (System.Text.Json.Serialization.Metadata.JsonTypeInfo<T>)(_jsonOptions ??= LibraryJsonContext.WithContext(
+            JsonServices.GetService(typeof(System.Text.Json.Serialization.JsonSerializerContext)) as System.Text.Json.Serialization.JsonSerializerContext)).GetTypeInfo(typeof(T));
+
     private readonly string _observerId;
     private readonly string _wrapperId;
     private readonly string _elementId;
@@ -293,7 +303,7 @@
             object? dataToSend = data;
 
             if (data is not null && data is not string)
-                dataToSend = JsonUtil.Serialize(data);
+                dataToSend = JsonUtil.Serialize(data, GetJsonTypeInfo<object>());
 
             await DrawflowInterop.AddNode(_elementId, name, inputs, outputs, posX, posY, className, dataToSend, html, linked);
         }

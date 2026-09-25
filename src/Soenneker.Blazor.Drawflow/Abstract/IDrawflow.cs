@@ -10,6 +10,7 @@ namespace Soenneker.Blazor.Drawflow.Abstract;
 /// <summary>
 /// Interface for the Drawflow Blazor component
 /// </summary>
+/// <remarks>Register a source-generated System.Text.Json.Serialization.JsonSerializerContext covering application-defined values in object-typed payloads. Unknown CLR types are rejected.</remarks>
 public interface IDrawflow : ILeptonCancellableIdentifiableContentElement
 {
     /// <summary>
