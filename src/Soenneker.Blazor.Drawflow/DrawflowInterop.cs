@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Soenneker.Asyncs.Initializers;
@@ -76,7 +77,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
         await module.InvokeVoidAsync(identifier, cancellationToken, args);
     }
 
-    private async ValueTask<T> InvokeAsync<T>(string identifier, CancellationToken cancellationToken, params object?[] args)
+    private async ValueTask<T> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] T>(string identifier, CancellationToken cancellationToken, params object?[] args)
     {
         IJSObjectReference module = await GetModule(cancellationToken);
         return await module.InvokeAsync<T>(identifier, cancellationToken, args);
@@ -88,7 +89,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
         return source is null ? InvokeVoidAsync(identifier, linked, args) : InvokeOwnedVoidAsync(identifier, source, args);
     }
 
-    private ValueTask<T> InvokeLinkedAsync<T>(string identifier, CancellationToken cancellationToken, params object?[] args)
+    private ValueTask<T> InvokeLinkedAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] T>(string identifier, CancellationToken cancellationToken, params object?[] args)
     {
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
         return source is null ? InvokeAsync<T>(identifier, linked, args) : InvokeOwnedAsync<T>(identifier, source, args);
@@ -103,7 +104,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
         }
     }
 
-    private async ValueTask<T> InvokeOwnedAsync<T>(string identifier, CancellationTokenSource source, object?[] args)
+    private async ValueTask<T> InvokeOwnedAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] T>(string identifier, CancellationTokenSource source, object?[] args)
     {
         using (source)
         {
