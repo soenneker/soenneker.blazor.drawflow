@@ -9,7 +9,6 @@ using Soenneker.Blazor.Drawflow.Utils;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
 using Soenneker.Extensions.CancellationTokens;
-using Soenneker.Extensions.Enumerable;
 using Soenneker.Utils.CancellationScopes;
 using Soenneker.Utils.Json;
 using System;
@@ -153,7 +152,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public async ValueTask AddNode(string elementId, DrawflowNode node, CancellationToken cancellationToken = default)
     {
-        if (node.Name.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(node.Name))
             throw new ArgumentException("Node name cannot be null or empty", nameof(node));
 
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
@@ -256,7 +255,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public async ValueTask AddModule(string elementId, string moduleName, DrawflowModule module, CancellationToken cancellationToken = default)
     {
-        if (moduleName.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(moduleName))
             throw new ArgumentException("Module name cannot be null or empty", nameof(moduleName));
 
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
