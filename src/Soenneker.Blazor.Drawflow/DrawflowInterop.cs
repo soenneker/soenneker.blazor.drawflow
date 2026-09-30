@@ -21,10 +21,7 @@ namespace Soenneker.Blazor.Drawflow;
 /// <inheritdoc cref="IDrawflowInterop"/>
 public sealed class DrawflowInterop : IDrawflowInterop
 {
-    private readonly System.Text.Json.JsonSerializerOptions _jsonOptions;
 
-    private System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> GetJsonTypeInfo<T>() =>
-        (System.Text.Json.Serialization.Metadata.JsonTypeInfo<T>)_jsonOptions.GetTypeInfo(typeof(T));
 
     private const string _modulePath = "_content/Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
 
@@ -38,9 +35,8 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     private readonly CancellationScope _cancellationScope = new();
 
-    public DrawflowInterop(IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil, System.Text.Json.Serialization.JsonSerializerContext? jsonContext = null)
+    public DrawflowInterop(IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil)
     {
-        _jsonOptions = LibraryJsonContext.WithContext(jsonContext);
         _resourceLoader = resourceLoader;
         _moduleImportUtil = moduleImportUtil;
         _styleInitializer = new AsyncInitializer<bool>(InitializeStyle);
@@ -139,7 +135,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
             string? json = null;
 
             if (options != null)
-                json = JsonUtil.Serialize(options, GetJsonTypeInfo<DrawflowOptions>());
+                json = JsonUtil.Serialize(options);
 
             await InvokeVoidAsync("create", linked, elementId, json);
         }
@@ -188,7 +184,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
         using (source)
         {
             string json = await InvokeAsync<string>("exportFlow", linked, elementId);
-            return JsonUtil.Deserialize<DrawflowExport>(json, GetJsonTypeInfo<DrawflowExport>()) ?? new DrawflowExport();
+            return JsonUtil.Deserialize<DrawflowExport>(json) ?? new DrawflowExport();
         }
     }
 
@@ -203,7 +199,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
         using (source)
         {
-            string? json = JsonUtil.Serialize(drawflowExport, GetJsonTypeInfo<DrawflowExport>());
+            string? json = JsonUtil.Serialize(drawflowExport);
             await InvokeVoidAsync("importFlow", linked, elementId, json);
         }
     }
@@ -292,7 +288,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
             if (string.IsNullOrWhiteSpace(json))
                 return null;
 
-            return JsonUtil.Deserialize<DrawflowNode>(json, GetJsonTypeInfo<DrawflowNode>());
+            return JsonUtil.Deserialize<DrawflowNode>(json);
         }
     }
 
