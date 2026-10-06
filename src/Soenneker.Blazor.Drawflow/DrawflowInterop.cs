@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization.Metadata;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -21,6 +24,10 @@ namespace Soenneker.Blazor.Drawflow;
 /// <inheritdoc cref="IDrawflowInterop"/>
 public sealed class DrawflowInterop : IDrawflowInterop
 {
+    private readonly JsonSerializerOptions _jsonOptions;
+
+    private JsonTypeInfo<T> GetJsonTypeInfo<T>() => (JsonTypeInfo<T>)_jsonOptions.GetTypeInfo(typeof(T));
+
 
 
     private const string _modulePath = "_content/Soenneker.Blazor.Drawflow/js/drawflowinterop.js";
@@ -35,8 +42,9 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     private readonly CancellationScope _cancellationScope = new();
 
-    public DrawflowInterop(IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil)
+    public DrawflowInterop(IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil, JsonSerializerContext? jsonContext = null)
     {
+        _jsonOptions = LibraryJsonContext.WithContext(jsonContext);
         _resourceLoader = resourceLoader;
         _moduleImportUtil = moduleImportUtil;
         _styleInitializer = new AsyncInitializer<bool>(InitializeStyle);
@@ -135,7 +143,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
             string? json = null;
 
             if (options != null)
-                json = JsonUtil.Serialize(options);
+                json = JsonUtil.Serialize(options, GetJsonTypeInfo<DrawflowOptions>());
 
             await InvokeVoidAsync("create", linked, elementId, json);
         }
@@ -143,7 +151,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default)
     {
-        return InvokeLinkedVoidAsync("addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, data, html);
+        return InvokeLinkedVoidAsync("addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<object>()), html);
     }
 
     public async ValueTask AddNode(string elementId, DrawflowNode node, CancellationToken cancellationToken = default)
@@ -158,7 +166,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
             int inputs = node.Inputs?.Count ?? 0;
             int outputs = node.Outputs?.Count ?? 0;
 
-            await InvokeVoidAsync("addNode", linked, elementId, node.Name, inputs, outputs, node.PosX, node.PosY, node.Class ?? "", node.Data, node.Html ?? "");
+            await InvokeVoidAsync("addNode", linked, elementId, node.Name, inputs, outputs, node.PosX, node.PosY, node.Class ?? "", JsonSerializer.SerializeToElement(node.Data, GetJsonTypeInfo<object>()), node.Html ?? "");
         }
     }
 
@@ -184,7 +192,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
         using (source)
         {
             string json = await InvokeAsync<string>("exportFlow", linked, elementId);
-            return JsonUtil.Deserialize<DrawflowExport>(json) ?? new DrawflowExport();
+            return JsonUtil.Deserialize(json, GetJsonTypeInfo<DrawflowExport>()) ?? new DrawflowExport();
         }
     }
 
@@ -199,7 +207,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
         using (source)
         {
-            string? json = JsonUtil.Serialize(drawflowExport);
+            string? json = JsonUtil.Serialize(drawflowExport, GetJsonTypeInfo<DrawflowExport>());
             await InvokeVoidAsync("importFlow", linked, elementId, json);
         }
     }
@@ -288,7 +296,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
             if (string.IsNullOrWhiteSpace(json))
                 return null;
 
-            return JsonUtil.Deserialize<DrawflowNode>(json);
+            return JsonUtil.Deserialize(json, GetJsonTypeInfo<DrawflowNode>());
         }
     }
 
@@ -299,7 +307,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask UpdateNodeData(string elementId, string id, object data, CancellationToken cancellationToken = default)
     {
-        return InvokeLinkedVoidAsync("updateNodeData", cancellationToken, elementId, id, data);
+        return InvokeLinkedVoidAsync("updateNodeData", cancellationToken, elementId, id, JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<object>()));
     }
 
     public ValueTask AddNodeInput(string elementId, string id, CancellationToken cancellationToken = default)
