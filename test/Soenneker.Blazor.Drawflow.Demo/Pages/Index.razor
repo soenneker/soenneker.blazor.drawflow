@@ -496,7 +496,6 @@
             // Force export after removal to verify node list
             if (_flow != null)
                 _debugNodeList = await _flow.ExportAsJson();
-            StateHasChanged();
         }
         else
         {
@@ -621,7 +620,6 @@
         if (_flow != null)
         {
             _currentDrawflowJson = await _flow.ExportAsJson();
-            StateHasChanged();
         }
     }
 
@@ -629,7 +627,6 @@
     {
         if (_flow != null)
             _debugNodeList = await _flow.ExportAsJson();
-        StateHasChanged();
     }
 
     private async Task AddTypedNode()
