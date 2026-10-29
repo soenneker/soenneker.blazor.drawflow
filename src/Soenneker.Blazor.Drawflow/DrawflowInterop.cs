@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Asyncs.Initializers;
 using Soenneker.Blazor.Drawflow.Abstract;
 using Soenneker.Blazor.Drawflow.Dtos;
@@ -76,28 +77,14 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     private async ValueTask InvokeVoidAsync(string identifier, CancellationToken cancellationToken, params object?[] args)
     {
-        try
-        {
-            IJSObjectReference module = await GetModule(cancellationToken);
-            await module.InvokeVoidAsync(identifier, cancellationToken, args);
-        }
-        catch (JSException exception)
-        {
-            throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
-        }
+        IJSObjectReference module = await GetModule(cancellationToken);
+        await module.InvokeVoidWithContextAsync(identifier, cancellationToken, args);
     }
 
     private async ValueTask<T> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] T>(string identifier, CancellationToken cancellationToken, params object?[] args)
     {
-        try
-        {
-            IJSObjectReference module = await GetModule(cancellationToken);
-            return await module.InvokeAsync<T>(identifier, cancellationToken, args);
-        }
-        catch (JSException exception)
-        {
-            throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
-        }
+        IJSObjectReference module = await GetModule(cancellationToken);
+        return await module.InvokeWithContextAsync<T>(identifier, cancellationToken, args);
     }
 
     private ValueTask InvokeLinkedVoidAsync(string identifier, CancellationToken cancellationToken, params object?[] args)
@@ -116,15 +103,8 @@ public sealed class DrawflowInterop : IDrawflowInterop
     {
         using (source)
         {
-            try
-            {
-                IJSObjectReference module = await GetModule(source.Token);
-                await module.InvokeVoidAsync(identifier, source.Token, args);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
-            }
+            IJSObjectReference module = await GetModule(source.Token);
+            await module.InvokeVoidWithContextAsync(identifier, source.Token, args);
         }
     }
 
@@ -132,15 +112,8 @@ public sealed class DrawflowInterop : IDrawflowInterop
     {
         using (source)
         {
-            try
-            {
-                IJSObjectReference module = await GetModule(source.Token);
-                return await module.InvokeAsync<T>(identifier, source.Token, args);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
-            }
+            IJSObjectReference module = await GetModule(source.Token);
+            return await module.InvokeWithContextAsync<T>(identifier, source.Token, args);
         }
     }
 
