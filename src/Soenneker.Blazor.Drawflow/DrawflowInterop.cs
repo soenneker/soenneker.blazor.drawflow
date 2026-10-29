@@ -76,14 +76,28 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     private async ValueTask InvokeVoidAsync(string identifier, CancellationToken cancellationToken, params object?[] args)
     {
-        IJSObjectReference module = await GetModule(cancellationToken);
-        await module.InvokeVoidAsync(identifier, cancellationToken, args);
+        try
+        {
+            IJSObjectReference module = await GetModule(cancellationToken);
+            await module.InvokeVoidAsync(identifier, cancellationToken, args);
+        }
+        catch (JSException exception)
+        {
+            throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
+        }
     }
 
     private async ValueTask<T> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] T>(string identifier, CancellationToken cancellationToken, params object?[] args)
     {
-        IJSObjectReference module = await GetModule(cancellationToken);
-        return await module.InvokeAsync<T>(identifier, cancellationToken, args);
+        try
+        {
+            IJSObjectReference module = await GetModule(cancellationToken);
+            return await module.InvokeAsync<T>(identifier, cancellationToken, args);
+        }
+        catch (JSException exception)
+        {
+            throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
+        }
     }
 
     private ValueTask InvokeLinkedVoidAsync(string identifier, CancellationToken cancellationToken, params object?[] args)
@@ -102,8 +116,15 @@ public sealed class DrawflowInterop : IDrawflowInterop
     {
         using (source)
         {
-            IJSObjectReference module = await GetModule(source.Token);
-            await module.InvokeVoidAsync(identifier, source.Token, args);
+            try
+            {
+                IJSObjectReference module = await GetModule(source.Token);
+                await module.InvokeVoidAsync(identifier, source.Token, args);
+            }
+            catch (JSException exception)
+            {
+                throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
+            }
         }
     }
 
@@ -111,8 +132,15 @@ public sealed class DrawflowInterop : IDrawflowInterop
     {
         using (source)
         {
-            IJSObjectReference module = await GetModule(source.Token);
-            return await module.InvokeAsync<T>(identifier, source.Token, args);
+            try
+            {
+                IJSObjectReference module = await GetModule(source.Token);
+                return await module.InvokeAsync<T>(identifier, source.Token, args);
+            }
+            catch (JSException exception)
+            {
+                throw new JSException($"JavaScript operation 'DrawflowInterop.{identifier}' failed: {exception.Message}", exception);
+            }
         }
     }
 
@@ -151,7 +179,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask AddNode(string elementId, string name, int inputs, int outputs, int posX, int posY, string className, object? data, string html, CancellationToken cancellationToken = default)
     {
-        return InvokeLinkedVoidAsync("addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<object>()), html);
+        return InvokeLinkedVoidAsync("addNode", cancellationToken, elementId, name, inputs, outputs, posX, posY, className, JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<object?>()), html);
     }
 
     public async ValueTask AddNode(string elementId, DrawflowNode node, CancellationToken cancellationToken = default)
@@ -166,7 +194,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
             int inputs = node.Inputs?.Count ?? 0;
             int outputs = node.Outputs?.Count ?? 0;
 
-            await InvokeVoidAsync("addNode", linked, elementId, node.Name, inputs, outputs, node.PosX, node.PosY, node.Class ?? "", JsonSerializer.SerializeToElement(node.Data, GetJsonTypeInfo<object>()), node.Html ?? "");
+            await InvokeVoidAsync("addNode", linked, elementId, node.Name, inputs, outputs, node.PosX, node.PosY, node.Class ?? "", JsonSerializer.SerializeToElement(node.Data, GetJsonTypeInfo<object?>()), node.Html ?? "");
         }
     }
 
@@ -307,7 +335,7 @@ public sealed class DrawflowInterop : IDrawflowInterop
 
     public ValueTask UpdateNodeData(string elementId, string id, object data, CancellationToken cancellationToken = default)
     {
-        return InvokeLinkedVoidAsync("updateNodeData", cancellationToken, elementId, id, JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<object>()));
+        return InvokeLinkedVoidAsync("updateNodeData", cancellationToken, elementId, id, JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<object?>()));
     }
 
     public ValueTask AddNodeInput(string elementId, string id, CancellationToken cancellationToken = default)
