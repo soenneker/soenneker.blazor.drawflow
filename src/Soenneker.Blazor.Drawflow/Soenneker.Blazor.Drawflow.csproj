@@ -47,17 +47,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Asyncs.Initializers" Version="11.0.135" />
+        <PackageReference Include="Soenneker.Asyncs.Initializers" Version="11.0.137" />
         <PackageReference Include="Soenneker.Blazor.Drawflow.Dtos" Version="11.0.38" />
-        <PackageReference Include="Soenneker.Blazor.Utils.InteropEventListener" Version="11.0.4210" />
-        <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="11.0.1821" />
-        <PackageReference Include="Soenneker.Lepton.Suite" Version="11.0.136" />
+        <PackageReference Include="Soenneker.Blazor.Utils.InteropEventListener" Version="11.0.4211" />
+        <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="11.0.1822" />
+        <PackageReference Include="Soenneker.Lepton.Suite" Version="11.0.138" />
     </ItemGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Soenneker.Blazor.Drawflow.TrimSmoke" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Blazor.Extensions.IJSObjectReferences" Version="11.0.2" />
+        <PackageReference Include="Soenneker.Blazor.Extensions.IJSObjectReferences" Version="11.0.4" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Soenneker.Gen.Web.Minifier" Version="11.0.55" PrivateAssets="all" />
