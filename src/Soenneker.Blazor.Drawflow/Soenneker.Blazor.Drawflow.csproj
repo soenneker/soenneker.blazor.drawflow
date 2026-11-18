@@ -47,19 +47,19 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Asyncs.Initializers" Version="11.0.140" />
-        <PackageReference Include="Soenneker.Blazor.Drawflow.Dtos" Version="11.0.39" />
+        <PackageReference Include="Soenneker.Asyncs.Initializers" Version="11.0.142" />
+        <PackageReference Include="Soenneker.Blazor.Drawflow.Dtos" Version="11.0.40" />
         <PackageReference Include="Soenneker.Blazor.Utils.InteropEventListener" Version="11.0.4222" />
-        <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="11.0.1848" />
-        <PackageReference Include="Soenneker.Lepton.Suite" Version="11.0.145" />
+        <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="11.0.1849" />
+        <PackageReference Include="Soenneker.Lepton.Suite" Version="11.0.146" />
     </ItemGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Soenneker.Blazor.Drawflow.TrimSmoke" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Blazor.Extensions.IJSObjectReferences" Version="11.0.6" />
+        <PackageReference Include="Soenneker.Blazor.Extensions.IJSObjectReferences" Version="11.0.8" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Gen.Web.Minifier" Version="11.0.76" PrivateAssets="all" />
+        <PackageReference Include="Soenneker.Gen.Web.Minifier" Version="11.0.77" PrivateAssets="all" />
     </ItemGroup>
 </Project>
